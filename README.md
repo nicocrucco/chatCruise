@@ -1,19 +1,14 @@
-# Financial Chatbot
+# ChatCruise
 
-![License](https://img.shields.io/github/license/Fievel102/Alten)
-![Issues](https://img.shields.io/github/issues/username/repo)
-![Stars](https://img.shields.io/github/stars/username/repo)
-![Forks](https://img.shields.io/github/forks/username/repo)
 
 ## Descrizione
 
-Financial Chatbot è un agente intelligente progettato per assistere gli utenti con una varietà di funzionalità nel campo finanziario. Tra le funzionalità offerte, il chatbot può:
+ChatCruise è un agente intelligente progettato per assistere gli utenti con una varietà di funzionalità all'interno di una nave da crociera. Tra le funzionalità offerte, il chatbot può:
 
-- Fornire aggiornamenti in tempo reale sui mercati finanziari
-- Suggerire strategie di investimento
-- Rispondere a domande su concetti finanziari
-- Offrire assistenza nella gestione del budget personale
-
+- Fornire aggiornamenti in tempo reale sugli eventi in corso
+- Suggerire il percorso migliore da un punto ad un altro
+- Fornire suggerimenti
+  
 ## Caratteristiche
 
 - **Aggiornamenti di Mercato**: Informazioni in tempo reale su azioni, obbligazioni, criptovalute e altro.
