@@ -11,10 +11,7 @@ ChatCruise è un agente intelligente progettato per assistere gli utenti con una
   
 ## Caratteristiche
 
-- **Aggiornamenti di Mercato**: Informazioni in tempo reale su azioni, obbligazioni, criptovalute e altro.
-- **Consulenza Finanziaria**: Suggerimenti e strategie per investimenti basati su analisi dati.
-- **Educazione Finanziaria**: Risposte a domande sui concetti di finanza per aiutare gli utenti a migliorare la loro alfabetizzazione finanziaria.
-- **Gestione del Budget**: Strumenti per monitorare entrate e uscite, impostare obiettivi di risparmio e pianificare le spese.
+- **Aggiungi caratteristiche a piacimento**
 
 ## Installazione
 
