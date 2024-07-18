@@ -41,6 +41,7 @@ from PIL import Image
 import io
 
 #CIAO A TUTTI!
+#ECCOMI!
 
 st.set_page_config(page_title="ChatBTP",page_icon="🤖",layout="wide")
 # Reducing whitespace on the top of the page
