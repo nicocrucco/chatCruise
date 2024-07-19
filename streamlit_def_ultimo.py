@@ -17,7 +17,6 @@ import math
 
 # Leggi il file CSV e carica i dati in un DataFrame
 script_dir = os.path.dirname(os.path.abspath(__file__))
-
 # Ora puoi lavorare con il DataFrame 'df'
 
 import requests

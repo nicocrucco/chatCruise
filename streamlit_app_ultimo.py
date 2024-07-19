@@ -1,6 +1,6 @@
 ######################################################
  
-#########      latest update: Alessia  ###############
+#########      latest update: Aldo  ###############
  
 ######################################################
 
@@ -46,6 +46,7 @@ import matplotlib.gridspec as gridspec
 from PIL import Image
 import io
 from dotenv import load_dotenv
+import itertools
 
 
 st.set_page_config(page_title="chatCruise",page_icon="🤖",layout="wide")
@@ -1302,130 +1303,60 @@ def generate_response(prompt_input):
             'ascensore 2':[159,838]
         }
 
+        lista_dizionari = [dizionario1,dizionario2,dizionario3]
+        lista_ascensori = [ascensori1,ascensori2,ascensori3]
+
+        #andare all'ascensore
+        def verso_ascensore(dizionario_piano,index):
+            #if partenza in dizionario_piano.keys():
+                minimo = float('inf')
+                for i,j in lista_ascensori[index].items():
+                    if sfun.distanza_euclidea(j,dizionario_piano, partenza) < minimo:
+                        arrivo = i
+                        minimo = sfun.distanza_euclidea(j,dizionario_piano, partenza)
+                return arrivo
+            
+            
+        #passare da un piano a un altro
+        def cambiare_piano(indice_partenza,indice_arrivo):
+            partenza1 = partenza
+            minimo = float('inf')
+            for i,j in lista_ascensori[indice_partenza].items():
+                    if sfun.distanza_euclidea(j,lista_dizionari[indice_partenza], partenza1) < minimo:
+                        arrivo1 = i
+                        minimo = sfun.distanza_euclidea(j,lista_dizionari[indice_partenza], partenza1)
+            piano_partenza = indice_partenza +1       
+            partenza2 = arrivo1
+            arrivo2 = arrivo
+            piano_arrivo = indice_arrivo +1
+            cont_piano = 1
+            
+            return piano_partenza,piano_arrivo,partenza1,arrivo1,partenza2,arrivo2,cont_piano
+        
+        #voglio andare all'ascensore più vicino
         if type(arrivo) != int and 'ascensore' in arrivo:
             if arrivo == 'ascensore':
-            
-                if partenza in dizionario1.keys():
-                    minimo = float('inf')
-                    for i,j in ascensori1.items():
-                        if sfun.distanza_euclidea(j,dizionario1, partenza) < minimo:
-                            arrivo = i
-                            minimo = sfun.distanza_euclidea(j,dizionario1, partenza)
-                            
-                elif partenza in dizionario2.keys():
-                    minimo = float('inf')
-                    for i,j in ascensori2.items():
-                        if sfun.distanza_euclidea(j,dizionario2, partenza) < minimo:
-                            arrivo = i
-                            minimo = sfun.distanza_euclidea(j,dizionario2, partenza)
-                elif partenza in dizionario3.keys():
-                    minimo = float('inf')
-                    for i,j in ascensori3.items():
-                        if sfun.distanza_euclidea(j,dizionario3, partenza) < minimo:
-                            arrivo = i
-                            minimo = sfun.distanza_euclidea(j,dizionario3, partenza)                
-            else:
+                for i in range(len(lista_dizionari)):
+                    if partenza in lista_dizionari[i].keys():
+                        arrivo = verso_ascensore(lista_dizionari[i],i)
+            else: 
                 pass
-
+            
+        #parto da un ascensore
         elif type(partenza) != int and 'ascensore' in partenza:
-            if arrivo in dizionario1.keys():
-                minimo = float('inf')
-                for i,j in ascensori1.items():
-                    if i == partenza:
-                        pass
-                            
-            elif arrivo in dizionario2.keys():
-                minimo = float('inf')
-                for i,j in ascensori2.items():
-                    if i == partenza:
-                        pass
-            elif arrivo in dizionario3.keys():
-                minimo = float('inf')
-                for i,j in ascensori3.items():
-                    if i == partenza:
-                        pass
+            for index in range(len(lista_dizionari)):
+                if arrivo in lista_dizionari[index].keys():
+                    str_partenza_ascensore = f"Portati al piano {index+1}. "
+                    for i,j in lista_ascensori[index].items():
+                        if i == partenza:        
+                            pass
 
-        elif partenza in dizionario1.keys() and arrivo in dizionario2.keys():
-            partenza1 = partenza
-            minimo = float('inf')
-            for i,j in ascensori1.items():
-                    if sfun.distanza_euclidea(j,dizionario1, partenza1) < minimo:
-                        arrivo1 = i
-                        minimo = sfun.distanza_euclidea(j,dizionario1, partenza1)
-            piano_partenza = 1            
-            partenza2 = arrivo1
-            arrivo2 = arrivo
-            piano_arrivo = 2
-            cont_piano = 1
-            
-        elif partenza in dizionario1.keys() and arrivo in dizionario3.keys():
-            partenza1 = partenza
-            minimo = float('inf')
-            for i,j in ascensori1.items():
-                    if sfun.distanza_euclidea(j,dizionario1, partenza1) < minimo:
-                        arrivo1 = i
-                        minimo = sfun.distanza_euclidea(j,dizionario1, partenza1)
-            piano_partenza = 1            
-            partenza2 = arrivo1
-            arrivo2 = arrivo
-            piano_arrivo = 3
-            cont_piano = 1
-
-        elif partenza in dizionario2.keys() and arrivo in dizionario1.keys():
-            partenza1 = partenza
-            minimo = float('inf')
-            for i,j in ascensori2.items():
-                    if sfun.distanza_euclidea(j,dizionario2, partenza1) < minimo:
-                        arrivo1 = i
-                        minimo = sfun.distanza_euclidea(j,dizionario2, partenza1)
-            piano_partenza = 2
-            
-            partenza2 = arrivo1
-            arrivo2 = arrivo
-            piano_arrivo = 1
-            cont_piano = 1
-                        
-        elif partenza in dizionario2.keys() and arrivo in dizionario3.keys():
-            partenza1 = partenza
-            minimo = float('inf')
-            for i,j in ascensori2.items():
-                    if sfun.distanza_euclidea(j,dizionario2, partenza1) < minimo:
-                        arrivo1 = i
-                        minimo = sfun.distanza_euclidea(j,dizionario2, partenza1)
-            piano_partenza = 2
-            
-            partenza2 = arrivo1
-            arrivo2 = arrivo
-            piano_arrivo = 3
-            cont_piano = 1
-
-        elif partenza in dizionario3.keys() and arrivo in dizionario1.keys():
-            partenza1 = partenza
-            minimo = float('inf')
-            for i,j in ascensori3.items():
-                    if sfun.distanza_euclidea(j,dizionario3, partenza1) < minimo:
-                        arrivo1 = i
-                        minimo = sfun.distanza_euclidea(j,dizionario3, partenza1)
-            piano_partenza = 3
-            
-            partenza2 = arrivo1
-            arrivo2 = arrivo
-            piano_arrivo = 1
-            cont_piano = 1
-
-        elif partenza in dizionario3.keys() and arrivo in dizionario2.keys():
-            partenza1 = partenza
-            minimo = float('inf')
-            for i,j in ascensori3.items():
-                    if sfun.distanza_euclidea(j,dizionario3, partenza1) < minimo:
-                        arrivo1 = i
-                        minimo = sfun.distanza_euclidea(j,dizionario3, partenza1)
-            piano_partenza = 3
-            
-            partenza2 = arrivo1
-            arrivo2 = arrivo
-            piano_arrivo = 2
-            cont_piano = 1
+        #passo da un piano a un altro
+        else:
+            perm = itertools.permutations(range(len(lista_dizionari)),2)
+            for p in perm:
+                if partenza in lista_dizionari[p[0]] and arrivo in lista_dizionari[p[1]]:
+                    piano_partenza,piano_arrivo,partenza1,arrivo1,partenza2,arrivo2,cont_piano = cambiare_piano(p[0],p[1])
 
         def percorso(partenza, arrivo, piano):
     
@@ -1568,6 +1499,8 @@ def generate_response(prompt_input):
             a2 = list(dizionario_finale2.keys())[-1]
         if cont_piano  == 0:
             risposta = chain_jpg.invoke({'dizionario_template':dizionario1_template,'partenza':p,'arrivo':a}).content
+            if 'ascensore' in partenza:
+                risposta = str_partenza_ascensore + risposta
             return im, None, risposta
         elif cont_piano == 1:
             risposta_1 = chain_jpg.invoke({'dizionario_template':dizionario1_template,'partenza':p1,'arrivo':a1}).content
