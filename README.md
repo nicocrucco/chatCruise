@@ -13,6 +13,15 @@ ChatCruise è un agente intelligente progettato per assistere gli utenti con una
 
 - **Aggiungi caratteristiche a piacimento**
 
+## Tech stack
+
+Tecnologia utilizzata per la creazione di ChatCruise: 
+- Python
+- LLM framework (LangChain)
+- Microsft Azure
+- Relational daatabse su DBeaver (SQL Server)
+- Intefraccia creata con Streamlit
+
 ## Installazione
 
 1. Clona il repository:
