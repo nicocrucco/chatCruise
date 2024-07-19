@@ -1599,15 +1599,15 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
                         st.session_state.mail_oggetto = "Segnalazione"
                         st.session_state.mail_indirizzo = "andreapastore326@gmail.com"
 
-                elif st.session_state.mail_checker == 1:
-                    if "stringa-segreta" in st.session_state.mail_body:
-                        st.write("inserisci il testo della segnalazione (se non vuoi mandare la segnalazione scrivi esci)")
-                        st.session_state.mail_checker+=1
-                        response="inserisci il testo della segnalazione (se non vuoi mandare la segnalazione scrivi esci)"
-                    else:
-                        response= sfun.riassunto_segnalazione(st.session_state.mail_body)
-                        st.write(response)
-                        st.session_state.sicuro = "s"
+                # elif st.session_state.mail_checker == 1:
+                #     if "stringa-segreta" in st.session_state.mail_body:
+                #         st.write("inserisci il testo della segnalazione (se non vuoi mandare la segnalazione scrivi esci)")
+                #         st.session_state.mail_checker+=1
+                #         response="inserisci il testo della segnalazione (se non vuoi mandare la segnalazione scrivi esci)"
+                #     else:
+                #         response= sfun.riassunto_segnalazione(st.session_state.mail_body)
+                #         st.write(response)
+                #         st.session_state.sicuro = "s"
                     
                 elif st.session_state.mail_checker==2:
                     if prompt.replace(" ","") == "":
