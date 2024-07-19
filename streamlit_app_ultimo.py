@@ -41,6 +41,7 @@ from PIL import Image
 import io
 from dotenv import load_dotenv
 
+
 st.set_page_config(page_title="chatCruise",page_icon="🤖",layout="centered")
 # Reducing whitespace on the top of the page
 st.markdown("""
