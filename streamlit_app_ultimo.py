@@ -928,15 +928,6 @@ if "chain" not in st.session_state:
     Domanda : Voglio comprare Btpi-15st35 2,35%
     Risposta: 10#Btpi-15st35 2,35%#stringa-segreta
 
-    -Restituiscimi "11" se l'utente chiede di vendere dei btp. Analizza la richiesta e individua la denominazione del btp, la quantità 
-    da vendere. La struttura della risposta deve essere: "11"#denominazione del btp#quantità da vendere. Se non viene
-    specificata la denominazione del btp, utilizza "stringa-segreta". Se non viene specificata la quantità da vendere, utilizza "stringa-segreta".
-    Esempi: 
-    Domanda: Voglio vendere un btp
-    Risposta: 11#stringa-segreta#stringa-segreta
-    Domanda : Voglio cedere Btpi-15st35 2,35%
-    Risposta: 11#Btpi-15st35 2,35%#stringa-segreta
-
     -Restituiscimi "12" se l'utente chiede di dargli delle indicazioni sul percorso migliore per arrivare da un punto di partenza ad un punto di arrivo. 
      I punti di arrivo e partenza possono essere o numeri di cabine, ascensori o ambienti ad esempio: market place, bar, capriccio lounge, ecc.. 
      Gli ascensori sono due: ascensore 1 e ascensore 2. L'utente specificherà il punto di partenza e il punto di arrivo. 
