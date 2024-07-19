@@ -32,4 +32,4 @@ ChatCruise è un agente intelligente progettato per assistere gli utenti con una
 
 Per avviare il chatbot, esegui:
 ```sh
-streamlit run "nome_del_tuo file.py"
+streamlit run streamlit_app_ultimo.py
