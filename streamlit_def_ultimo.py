@@ -148,6 +148,14 @@ def riassunto(oggetto, body, indirizzo):
     stringa_riassunto += "Sei sicuro di volerla inviare? Rispondi con Si o No"
     return stringa_riassunto 
 
+def riassunto_segnalazione(body):
+    dict_riassunto = {"contenuto":body}
+    stringa_riassunto = "Questo è il riepilogo della tua segnalazione: \n\n"
+    for key in dict_riassunto.keys():
+        stringa_riassunto += dict_riassunto[key] + "\n\n"
+    stringa_riassunto += "Sei sicuro di volerla inviare? Rispondi con Si o No"
+    return stringa_riassunto 
+
 def inserimento_acquisto(buy_btp,buy_quantità,lista_dati):
     #buy_btp = denominazione del btp che sto comprando
     try:

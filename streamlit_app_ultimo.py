@@ -42,7 +42,7 @@ import io
 from dotenv import load_dotenv
 
 
-st.set_page_config(page_title="chatCruise",page_icon="🤖",layout="centered")
+st.set_page_config(page_title="chatCruise",page_icon="🤖",layout="wide")
 # Reducing whitespace on the top of the page
 st.markdown("""
 <style>
@@ -169,7 +169,7 @@ if "mail_checker" not in st.session_state.keys():
     st.session_state.mail_checker = 0
     
 if "mail_oggetto" not in st.session_state.keys():
-    st.session_state.mail_oggetto = "stringa-segreta"
+    st.session_state.mail_oggetto = "Segnalazione"
 
 if "mail_body" not in st.session_state.keys():
     st.session_state.mail_body = "stringa-segreta"
@@ -909,10 +909,9 @@ if "chain" not in st.session_state:
       Se l'utente specifica di cancellare l'ultima nota la struttura del content deve essere: 7#-1; Se l'utente specifica di cancellare la penultima
      nota la struttura del content deve essere: 7#-2;
     
-    -Restituiscimi "9" se l'utente chiede di inviare una mail. Analizza la richiesta e individua il contenuto della mail, l'oggetto della mail e
-    l'indirizzo email del destinatario. La struttura della risposta deve essere: "9"#contenuto della mail#oggetto#indirizzo email. Se non viene
-    specificato il contenuto della mail, utilizza "stringa-segreta". Se non viene specificato un oggetto, utilizza "stringa-segreta". Se non viene specificato un indirizzo email,
-    utilizza "andreapastore326@gmail.com".
+    -Restituiscimi "9" se l'utente chiede di inviare una segnalazione oppure se l'utente dice di avere un problema. 
+    Esempi di domande che possono essere poste e che ti aiuteranno ad interpretare la domanda da parte dell'utente sono: "Voglio fare una segnalazione", "Ho un problema" e "Voglio fare una segnalazione per un problema"
+    
 
     -Restituiscimi "10" se l'utente chiede di fare degli acquisti sui btp. Analizza la richiesta e individua la denominazione del btp, la quantità 
     da acquistare. La struttura della risposta deve essere: "10"#denominazione del btp#quantità da acquistare. Se non viene
@@ -1006,6 +1005,8 @@ def generate_response(prompt_input):
     global risp_nota 
     risposta = chain.invoke({"question": prompt_input}).content #Stampami un Codice Isin casuale
     lista_risposta=risposta.split('#')
+
+
     if lista_risposta[0].strip() == '1': #Text to SQL (Estrazione di informazioni da un dataset)
         st.session_state.engine.connect()
         risultato = chain_risposta1.invoke({"question": lista_risposta[1]})
@@ -1191,30 +1192,35 @@ def generate_response(prompt_input):
 
     elif lista_risposta[0].strip() == "9":
         
-        st.session_state.mail_body = lista_risposta[1]
-        st.session_state.mail_oggetto = lista_risposta[2]
-        st.session_state.mail_indirizzo = lista_risposta[3]
-        if sfun.controllo_mail(st.session_state.mail_indirizzo):
-            #return  st.session_state.mail_body, st.session_state.mail_oggetto
-            #codice andrea
-            if "stringa-segreta" not in st.session_state.mail_body:
-                if "stringa-segreta" not in st.session_state.mail_oggetto:
-                    st.session_state.sicuro = 's'
-                    return sfun.riassunto(st.session_state.mail_oggetto,st.session_state.mail_body, st.session_state.mail_indirizzo)
-                #oggetto vuoto
-                else:
-                    st.session_state.mail_checker = 1
-                    return "Inserisci l'oggetto della mail (se non vuoi inserire l'oggetto premi spazio e invio)"
-                    
-            #codice kevin
-            else:
-                if "stringa-segreta" in st.session_state.mail_oggetto:
-                    st.session_state.mail_checker= 1
-                    return "Inserisci l'oggetto della mail (se non vuoi inserire l'oggetto premi spazio e invio)"
-                else:
-                    return "Non hai inserito il testo della mail."
+        
+
+        if "stringa-segreta" not in st.session_state.mail_body:
+            st.session_state.sicuro = 's'
+            return sfun.riassunto_segnalazione(st.session_state.mail_body)
         else:
-            return risposta
+            st.session_state.mail_checker= 2
+            return "Inserisci il testo della segnalazione (se non vuoi mandare la segnalazione scrivi esci)"
+
+
+    
+        
+        # if "stringa-segreta" not in st.session_state.mail_body:
+        #     if "stringa-segreta" not in st.session_state.mail_oggetto:
+        #         st.session_state.sicuro = 's'
+        #         return sfun.riassunto(st.session_state.mail_oggetto,st.session_state.mail_body, st.session_state.mail_indirizzo)
+        #     #oggetto vuoto
+        #     else:
+        #         st.session_state.mail_checker = 1
+        #         return "Inserisci l'oggetto della mail (se non vuoi inserire l'oggetto premi spazio e invio)"
+                
+        # #codice kevin
+        # else:
+        #     if "stringa-segreta" in st.session_state.mail_oggetto:
+                
+        #         return "Inserisci l'oggetto della mail (se non vuoi inserire l'oggetto premi spazio e invio)"
+        #     else:
+        #         return "Non hai inserito il testo della mail."
+    
         
     #ACQUISTO BTP
     elif lista_risposta[0].strip() == "10":
@@ -1644,38 +1650,37 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
                         st.session_state.sicuro= prompt
                         if st.session_state.sicuro.lower()[0] == "s":
                                 st.write(sfun.mail(st.session_state.mail_oggetto,st.session_state.mail_body, st.session_state.mail_indirizzo))
-                                response ="Mail inviata correttamente!"
+                                response ="Segnalazione inviata correttamente. Riceverai presto assistenza."
                         else:    
-                                response = "Ok, mail non inviata"
+                                response = "Ok, segnalazione non inviata"
                                 st.write(response)
                         st.session_state.mail_checker=0
                         st.session_state.sicuro ="n"
-                        st.session_state.mail_body = "0"
-                        st.session_state.mail_oggetto = "0"
+                        st.session_state.mail_body = "stringa-segreta"
+                        st.session_state.mail_oggetto = "Segnalazione"
                         st.session_state.mail_indirizzo = "andreapastore326@gmail.com"
 
                 elif st.session_state.mail_checker == 1:
-                    st.session_state.mail_oggetto=prompt
                     if "stringa-segreta" in st.session_state.mail_body:
-                        st.write("inserisci il testo dell'email (se non vuoi mandare la mail scrivi esci)")
+                        st.write("inserisci il testo della segnalazione (se non vuoi mandare la segnalazione scrivi esci)")
                         st.session_state.mail_checker+=1
-                        response="inserisci il testo dell'email (se non vuoi mandare la mail scrivi esci)"
+                        response="inserisci il testo della segnalazione (se non vuoi mandare la segnalazione scrivi esci)"
                     else:
-                        response= sfun.riassunto(st.session_state.mail_oggetto,st.session_state.mail_body, st.session_state.mail_indirizzo)
+                        response= sfun.riassunto_segnalazione(st.session_state.mail_body)
                         st.write(response)
                         st.session_state.sicuro = "s"
                     
                 elif st.session_state.mail_checker==2:
                     if prompt.replace(" ","") == "":
-                        st.write("inserisci il testo dell'email (se non vuoi mandare la mail scrivi esci)")
+                        st.write("inserisci il testo della segnalazione (se non vuoi mandare la segnalazione scrivi esci)")
                         response=""
                     elif prompt.lower() == "esci":
-                        st.write("Mail non mandata")
+                        st.write("Segnalazione non mandata")
                         st.session_state.mail_checker=0
-                        response="Mail non mandata"
+                        response="Segnalazione non mandata"
                     else:
                         st.session_state.mail_body= prompt
-                        response= sfun.riassunto(st.session_state.mail_oggetto,st.session_state.mail_body, st.session_state.mail_indirizzo)
+                        response= sfun.riassunto_segnalazione(st.session_state.mail_body)
                         st.write(response)
                         st.session_state.sicuro = 's'
 
