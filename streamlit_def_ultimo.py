@@ -17,7 +17,6 @@ import math
 
 # Leggi il file CSV e carica i dati in un DataFrame
 script_dir = os.path.dirname(os.path.abspath(__file__))
-df = pd.read_csv(os.path.join(script_dir,"Codici_Isin&Descrizione.csv"))
 
 # Ora puoi lavorare con il DataFrame 'df'
 
@@ -26,8 +25,11 @@ from bs4 import BeautifulSoup
 
 note_file = os.path.join(script_dir,"data")
 note_file = os.path.join(note_file,'notes.txt')
-segna_data_file = os.path.join(script_dir,'Segna_Data')
-pdf_file = os.path.join(script_dir, "output.pdf")
+
+# segna_data_file = os.path.join(script_dir,'Segna_Data')
+# pdf_file = os.path.join(script_dir, "output.pdf")
+
+
 #scrivo la funiona per aggiungere una nota
 def save_note(date_time, note):
     
@@ -85,50 +87,6 @@ def delete_row(riga_da_eliminare):
             file.writelines(righe)
    
         return 'La nota è stata cancellata'
-   
- 
-
-
-
-def get_btp_price(isin=None, denomination=None):
-    # Costruisci l'URL in base all'ISIN o alla denominazione
-    if isin:
-        url = f"https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/scheda/{isin}.html?lang=it"
-        print(url)
-    elif denomination:
-        denomination = denomination.lower()
-        try:
-            isin = df.loc[df['DESCRIZIONE'] == denomination, 'ISIN'].iloc[0]
-            print("isin: ", isin)
-            url = f"https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/scheda/{isin}.html?lang=it"
-            print("url: ", url)
-        except IndexError:
-            print('Errore')
-            return None
-    else:
-        return None
-    
-    # Effettua la richiesta HTTP
-    response = requests.get(url)
-
-    if response.status_code == 200:
-        # Analizza il contenuto HTML della pagina
-        soup = BeautifulSoup(response.text, 'html5lib')
-        # print(response.text)
-
-        # Cerchiamo il primo elemento <span> con la classe "t-text -black-warm-60 -formatPrice"
-        span_tag = soup.find('span', class_ = 't-text -black-warm-60 -formatPrice')
-        #print(span_tag)
-        if span_tag:  # Controlla se è stato trovato l'elemento <span>
-            strong_tag = span_tag.find('strong')  # Trova l'elemento <strong> all'interno del <span>
-            if strong_tag:  # Controlla se è stato trovato l'elemento <strong>
-                prezzo_ultimo = strong_tag.text
-                # print("prezzo ultimo: ", prezzo_ultimo)  # Stampa il testo dell'elemento <strong>
-        
-        return prezzo_ultimo
-    
-    else:
-        pass
 
 
 def mail(oggetto,body, indirizzo ):
@@ -342,13 +300,6 @@ def inserimento_vendita(sell_btp,sell_quantità,lista_dati):
         return e
     stringa="Vendita effettuata correttamente!"
     return stringa
-
-def costruzione_query(valuta1, valuta2):
-    return f"""Risposta:
-SELECT TOP 1 *
-FROM Scraping_BorsaItaliana
-WHERE Titolo LIKE '%cambi%' AND Titolo LIKE '%{valuta1}%' AND Titolo LIKE '%{valuta2}%'
-ORDER BY Data_di_Pubblicazione DESC;"""
 
 def riconosci_discorso_da_mic():
     recognizer = sr.Recognizer()

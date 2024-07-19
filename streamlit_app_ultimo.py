@@ -39,10 +39,9 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from PIL import Image
 import io
+from dotenv import load_dotenv
 
-#CIAO A TUTTI!
-#bonase
-st.set_page_config(page_title="ChatBTP",page_icon="🤖",layout="wide")
+st.set_page_config(page_title="chatCruise",page_icon="🤖",layout="centered")
 # Reducing whitespace on the top of the page
 st.markdown("""
 <style>
@@ -61,12 +60,12 @@ st.markdown("""
 custom_html = """
 <div class="banner">
 <img src="https://leyton.com/it/wp-content/uploads/sites/11/2023/10/Alten-logo.png" alt="Banner Image">
-<span class="banner-text" style="font-family: sans-serif;"><b>ChatBTP</b></span>
+<span class="banner-text" style="font-family: sans-serif;"><b>chatCruise</b></span>
 </div>
 <style>
     .banner {
         width: 100%;
-        height: 200px;
+        height: 165px;
         overflow: hidden;
         display: flex;
         justify-content: center;
@@ -131,72 +130,23 @@ st.markdown(
 </style>
 """,unsafe_allow_html=True
 )
-# dopo il clic
-st.markdown(
-"""
-<style>
-    .st-emotion-cache-7ym5gk:focus:not(:active) {
-        border-color: rgb(255, 255, 255);
-        color: rgb(255, 255, 255);
-    }
-</style>
-""",unsafe_allow_html=True
-)
-#prima di essere cliccato
-st.markdown(
-"""
-<style>
-    .st-emotion-cache-7ym5gk {
-        display: inline-flex;
-        -webkit-box-align: center;
-        align-items: center;
-        -webkit-box-pack: center;
-        justify-content: center;
-        font-weight: 400;
-        padding: 0.25rem 0.75rem;
-        border-radius: 0.5rem;
-        min-height: 38.4px;
-        margin: 0px;
-        line-height: 1.6;
-        color: rgb(255,255,255);
-        width: auto;
-        user-select: none;
-        background-color: rgb(255, 255, 255);
-        border: rgb(255, 255, 255);
-    }
 
-</style>
-""",unsafe_allow_html=True
-)
-# passaggio del mouse
-st.markdown(
-"""
-<style>
-.st-emotion-cache-7ym5gk:hover {
-    border-color:rgb(255, 255, 255);
-    color: rgb(255, 255, 255);
-    }
-
-</style>
-""",unsafe_allow_html=True
-)
-
-st.sidebar.title("**Scegli la mia creatività**")
-st.session_state.temperatura = st.sidebar.slider(    
-    "",
-    min_value=0.0,    
-    max_value=1.0,    
-    value=0.0,
-    step = 0.5,
-    help="La temperatura è un indicatore di creatività del chatbot.",
-)
-st.sidebar.write("""\n
-                """)
-st.sidebar.write("""
-                • **Preciso 0**\n
-                • **Equilibrato 0.5**\n
-                • **Creativo 1** 
-                """)
+# st.sidebar.title("**Scegli la mia creatività**")
+# st.session_state.temperatura = st.sidebar.slider(    
+#     "",
+#     min_value=0.0,    
+#     max_value=1.0,    
+#     value=0.0,
+#     step = 0.5,
+#     help="La temperatura è un indicatore di creatività del chatbot.",
+# )
+# st.sidebar.write("""\n
+#                 """)
+# st.sidebar.write("""
+#                 • **Preciso 0**\n
+#                 • **Equilibrato 0.5**\n
+#                 • **Creativo 1** 
+#                 """)
 
 #----------------------------------------------------------Dati Conto[Societa, Id conto,Data transazione, Moneta-Movimento,Codice Movimento,Causale,Dare/Avere]------------------------------------------------------------------------------------
 Data_transazione= datetime.now()
@@ -258,7 +208,7 @@ if "RAG_checker" not in st.session_state.keys():
 # ---------------------------------------------------------End Checker RAG------------------------------------------------------------------------------------   
 # Store LLM generated responses
 if "messages" not in st.session_state.keys():
-    st.session_state.messages = [{"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg', "content": "Ciao!👋🏻\n\nSono il tuo assistente finanziario virtuale. Come posso aiutarti?"}]
+    st.session_state.messages = [{"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg', "content": "Benvenuto a bordo!👋🏻\n\n Sono il tuo assistant navigator, come posso aiutarti?"}]
 
 if 'cont' not in st.session_state:
     cont = 0
@@ -301,7 +251,7 @@ Like_buttons = []
 Dislike_buttons =[]
 
 # Display chat messages
-container = st.container(height=530)
+container = st.container(height=560)
 j = 0
 for i,message in enumerate(st.session_state.messages):
     with container:
@@ -333,7 +283,7 @@ for i,message in enumerate(st.session_state.messages):
                 col1, col2, col3 = st.columns([18,1,1])
                     
                 with col2:
-                    exec(f"Like_{j}=st.button('✅_{j}')")
+                    exec(f"Like_{j}=st.button('✅',key=f'btn_like{j}')")
                     exec(f"Like_buttons.append(Like_{j})")
                     if Like_buttons[-1]==True:
                         domanda = st.session_state.recensioni[j-2]["content"]
@@ -372,7 +322,7 @@ for i,message in enumerate(st.session_state.messages):
                 
                 #stampa 0 nella tabella quando l'esito è negativo
                 with col3:
-                    exec(f"Dislike_{j}=st.button('❌_{j}')")
+                    exec(f"Dislike_{j}=st.button('❌',key=f'btn_dislike{j}')")
                     exec(f"Dislike_buttons.append(Dislike_{j})")
                     if Dislike_buttons[-1]==True:
                         domanda = st.session_state.recensioni[j-1]["content"]
@@ -408,8 +358,9 @@ for i,message in enumerate(st.session_state.messages):
 
                         con.close()
 
-azure_openai_endpoint = 'https://alten-test-openai.openai.azure.com/'
-azure_openai_key = 'b9920b722aad4a438cf1a2c7c7fb3a50'
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)),"Ambiente.env"))
+azure_openai_endpoint = os.getenv("openai_endpoint")
+azure_openai_key = os.getenv("openai_key")
 
 #len(memoria.chat_memory.messages)
 
@@ -435,9 +386,8 @@ if 'chain_risposta1' not in st.session_state:
 
     warnings.filterwarnings("ignore")
 
-    table_name = 'Gruppo1_btp_Az_finale'
-    table_name1 = 'ALTEN_CONTO'
-    db = SQLDatabase(engine=st.session_state.engine, include_tables=[table_name,table_name1]) 
+    table_name = 'ALTEN_CONTO'
+    db = SQLDatabase(engine=st.session_state.engine, include_tables=[table_name]) 
     write_query = create_sql_query_chain(llm_risposta1, db) #..andando a creare SQL Query Chain con llm e db 
     execute_query = QuerySQLDataBaseTool(db=db) #creiamo un'istanza con il db per eseguire effettivamente la query
     #nel passaggio precedente abbiamo visto che la nostra catena era in grado di dare una query valida che potesse effettivamente essere utilizzata sul nostro db.
@@ -469,8 +419,8 @@ else:
     chain_risposta1 = st.session_state["chain_risposta1"]
 
 #----------------------------------------GESTIONE TEMPERATURA-------------------------------------------------------------------------------------
-if "temperatura" not in st.session_state.keys():
-    st.session_state.temperatura = 0
+# if "temperatura" not in st.session_state.keys():
+#     st.session_state.temperatura = 0
 
 
 if 'memoria' not in st.session_state:
@@ -505,7 +455,7 @@ llm_risposta3 = AzureChatOpenAI(
     openai_api_type="azure",
     openai_api_version = '2023-05-15',
     openai_api_key = azure_openai_key,
-    temperature = st.session_state.temperatura)
+    temperature = 0)
 
 # Build prompt
 template = """Utilizza i seguenti elementi di contesto, le domande precedenti e le relative risposte per rispondere esclusivamente alle domande di carattere economico e finanziario. Rispondi solo a queste domande. Se non conosci la risposta, di' semplicemente che non la sai, senza cercare di inventare una risposta (fatta eccezione per i saluti dell'utente). Se non comprendi la domanda perché è mal posta o contiene errori di battitura, chiedi gentilmente all'utente di riscriverla in maniera più comprensibile. Mantieni la risposta concisa e informativa.
@@ -896,6 +846,8 @@ if "chain_jpg" not in st.session_state:
 else:
     chain_jpg = st.session_state["chain_jpg"]
 
+#----------------------------------------------------- Ramo decisionale ---------------------------------
+
 if "chain" not in st.session_state:
 
     llm_partenza = AzureChatOpenAI(
@@ -917,12 +869,9 @@ if "chain" not in st.session_state:
     inerente all'estrazione di dati da un database.
  
     Le tabelle a cui fare riferimento includono:
-    1. 'Gruppo1_btp_Az_finale' (può eseguire solo operazioni di SELECT)
     2. `ALTEN_CONTO` (può eseguire operazioni di SELECT, INSERT, UPDATE)
     
     Esempi di richieste:
-    - "Selezionami la Denominazione univoca associata al Codice Isin IT0001086567"
-    - "Selezionami il Codice Isin associato alla Denominazione Btp-1nv26 7,25%"
     - "Mostra tutti i movimenti per il conto 123456789012345678901234567"
     - "Calcola la somma degli importi dei movimenti in EUR per la società ABC"
     - "Mostra il saldo per la società ABC alla data 2023-06-01"
@@ -935,7 +884,7 @@ if "chain" not in st.session_state:
     ma che fanno riferimento ai concetti rappresentati da tali colonne.
 
 
-    Per qualsiasi richiesta dell'utente relativa alle tabelle Gruppo1_btp_Az_finale e ALTEN_CONTO , anche se i nomi delle colonne non 
+    Per qualsiasi richiesta dell'utente relativa alle tabelle ALTEN_CONTO , anche se i nomi delle colonne non 
     sono specificati esattamente, rispondi comunque con "1" seguito dalla richiesta dell'utente.
 
     - Restituisci 2 quando l'utente vuole informazioni di carattere testuale, che comprendi debbano essere prese da qualche parte.
@@ -943,11 +892,6 @@ if "chain" not in st.session_state:
       essere: 2#domanda dell'utente senza tue modifiche. NB: a questa categoria appartengono anche quel tipo di richieste volte che capisci
       siano una riformulazione, precisazione o approfondimento di una risposta precedente; Le richieste possono riguardare informazioni di carattere economico, 
       cambi tra valute, riassunti di informazioni generali relativamente a oggi e ieri;
-
-    - Restituisci soltanto 3 se l'utente richiede la ricerca del Prezzo Ultimo in tempo reale specificando il Codice Isin o la Denominazione. 
-    All'interno del content, oltre al numero 3, scrivi la domanda posta dall'utente. Quindi, ad esempio, la struttura del content deve essere: 
-    3#Codice Isin o Denominazione#valore digitato Codice Isin o Denominazione specificata. Ad esempio, un tipo di richiesta può essere la
-      seguente: "Stampami il Prezzo Ultimo attuale associato al Codice Isin IT0001086567";
 
     - Restituiscimi 4 se l'utente richiede di annotare qualcosa. All'interno del content, oltre al numero 4, scrivi la richiesta dell'utente. 
       La struttura del content deve essere: 4#richiesta completa dell'utente. Ad esempio, un tipo di richiesta può essere la
@@ -1194,22 +1138,6 @@ def generate_response(prompt_input):
 
             return risultato       
 
-    elif lista_risposta[0].strip() == "3": #Scraping in tempo reale del prezzo ultimo :)
-
-
-        if lista_risposta[1].strip() == 'Codice Isin':
-
-            risultato = sfun.get_btp_price(isin = lista_risposta[2].strip())
-        
-        else:
-
-            risultato = sfun.get_btp_price(denomination = lista_risposta[2].strip())
-        
-        st.session_state["risultato"] = risultato
-
-        #print(f"Il prezzo ultimo è :{risultato}")
-        return risultato
-
     elif lista_risposta[0].strip() == '4': #Salvataggio in nota
 
         st.session_state['checker_nota'] = 1
@@ -1395,21 +1323,6 @@ def generate_response(prompt_input):
             else:
                 pass
 
-        # elif type(partenza) != int and 'ascensore' in partenza:
-        #     if arrivo in dizionario1.keys():
-        #         minimo = float('inf')
-        #         for i,j in ascensori1.items():
-        #             if sfun.distanza_euclidea(j,dizionario1, partenza) < minimo:
-        #                 partenza = i
-        #                 minimo = sfun.distanza_euclidea(j,dizionario1, partenza)
-                            
-        #     elif arrivo in dizionario2.keys():
-        #         minimo = float('inf')
-        #         for i,j in ascensori2.items():
-        #             if sfun.distanza_euclidea(j,dizionario2, partenza) < minimo:
-        #                 partenza = i
-        #                 minimo = sfun.distanza_euclidea(j,dizionario2, partenza)
-
         elif type(partenza) != int and 'ascensore' in partenza:
             if arrivo in dizionario1.keys():
                 minimo = float('inf')
@@ -1531,13 +1444,6 @@ def generate_response(prompt_input):
                 dizionario = dizionario3
                 #finder = DijkstraFinder(diagonal_movement=DiagonalMovement.never)            
 
-            # if type(arrivo) == str and 'ascensore' in arrivo:
-                
-            #     minimo = float('inf')
-            #     for i,j in ascensori.items():
-            #         if distanza_euclidea(j,dizionario) < minimo:
-            #             arrivo = i
-            #             minimo = distanza_euclidea(j,dizionario)
             finder = DijkstraFinder(diagonal_movement=DiagonalMovement.never)
             _,image_binary = cv2.threshold(immagine,150,255,cv2.THRESH_BINARY)
             image_binary = image_binary // 255
@@ -1611,7 +1517,6 @@ def generate_response(prompt_input):
             for i in range(len(path)-1):
                 cv2.line(immagine_colore,path[i],path[i+1],color=canale_blu,thickness=2)
 
-            #plt.legend([red,green,purple],['Partenza','Arrivo','Percorso'],fontsize='large')
             return immagine_colore
 
         if cont_piano == 1:
