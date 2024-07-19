@@ -1,3 +1,9 @@
+######################################################
+ 
+#########      latest update: Alessia  ###############
+ 
+######################################################
+
 import streamlit as st
 from sqlalchemy import create_engine
 from langchain.chains import create_sql_query_chain
