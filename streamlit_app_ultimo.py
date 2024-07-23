@@ -278,15 +278,25 @@ if "checker_ristoranti" not in st.session_state:
     checker_ristoranti = 0
     st.session_state["checker_ristoranti"] = checker_ristoranti
     st.session_state["checker_data"]=0
+    st.session_state["checker_persone"] = 0
 else:
     checker_ristoranti = st.session_state["checker_ristoranti"]
 #-----------------------------------------------------------------End Checker Ristoranti------------------------------------------------------------------------------
 #-----------------------------------------------------------------Begin data_prenotazione------------------------------------------------------------------------------------
 if "data_prenotazione" not in st.session_state:
     data_prenotazione = "no data"
+    st.session_state.persone_prenotate = 0
     st.session_state["data_prenotazione"] = data_prenotazione
 else:
     data_prenotazione = st.session_state["data_prenotazione"]
+#-----------------------------------------------------------------End data_prenotazione------------------------------------------------------------------------------
+#-----------------------------------------------------------------Begin risposta_ristorante------------------------------------------------------------------------------------
+if "risposta_ristorante" not in st.session_state:
+    risposta_ristorante = ""
+    st.session_state["risposta_ristorante"] = risposta_ristorante
+else:
+    risposta_ristorante = st.session_state["risposta_ristorante"]
+#-----------------------------------------------------------------End risposta_ristorante------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Display chat messages
 Like_buttons = []
@@ -401,17 +411,47 @@ for i,message in enumerate(st.session_state.messages):
 
                         con.close()
             elif message["role"]=="data":
-                date_default= datetime.now().date()
-                exec(f'd_{j}=st.date_input("",value =datetime.now().date(), min_value=datetime.now().date(), max_value=date(2024, 8, 4), format="YYYY/MM/DD", label_visibility="collapsed", key={j})')
-                exec(f"st.session_state.data_prenotazione =d_{j}")
-                exec(f"Data_{j}=st.button('Conferma',key=f'btn_dislike{j}')")
-                exec(f"Data_buttons.append(Data_{j})")
-                if Data_buttons[-1]==True and st.session_state.checker_data==1:  
-                   msg=f"Hai selezionato: {st.session_state.data_prenotazione}"
-                   message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg}
-                   st.session_state.messages.append(message)            
-                   st.session_state.checker_data=0
-                st.session_state.checker_ristoranti = 0
+                if st.session_state.checker_ristoranti == 2:
+                    exec(f'd_{j}=st.number_input("",min_value = 1, max_value = 50, key={j},label_visibility = "collapsed")')
+                    exec(f"st.session_state.persone_prenotate =d_{j}")
+                    exec(f"Data_{j}=st.button('Conferma',key=f'btn_dislike{j}')")
+                    exec(f"Data_buttons.append(Data_{j})")
+                    if Data_buttons[-1]==True and st.session_state.checker_persone == 1:  
+                        msg=f"Il numero di persone è: {st.session_state.persone_prenotate}"
+                        message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg}
+                        st.session_state.messages.append(message)
+                        msg="Scegli la data e la fascia oraria tra quelle disponibili."
+                        message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg}
+                        st.session_state.messages.append(message)
+                        st.session_state.checker_persone=0
+                        st.session_state.checker_ristoranti -= 1
+                elif st.session_state.checker_ristoranti == 1:
+                    con= pyodbc.connect('DRIVER={SQL Server};SERVER=bubidb.database.windows.net;DATABASE=mlacademy-sqldb;UID=MLacademy;PWD=alten-ML-academy2023')
+                    cursor= con.cursor()
+                    select_date_disponibili = """SELECT Giorno, FasciaOraria
+                                            FROM Ristoranti
+                                            WHERE NomeRistorante = ? AND CapienzaTotale >= ? AND Giorno >= CONVERT(date, GETDATE());"""
+                    cursor.execute(select_date_disponibili,(st.session_state.risposta_ristorante,st.session_state.persone_prenotate))
+                    lista_date_disponibili = []
+                    for row in cursor.fetchall():
+                        lista_date_disponibili.append(row)
+
+                    lista_box=[]
+                    for i in lista_date_disponibili:
+                        lista_box.append("Data: " + i[0] + " Fascia Oraria: " + i[1])
+                    con.close()
+
+                    date_default= datetime.now().date()
+                    exec(f'd_{j}=st.selectbox("",{lista_box}, key={j},label_visibility = "collapsed")')
+                    exec(f"st.session_state.data_prenotazione =d_{j}")
+                    exec(f"Data_{j}=st.button('Conferma',key=f'btn_dislike{j}')")
+                    exec(f"Data_buttons.append(Data_{j})")
+                    if Data_buttons[-1]==True and st.session_state.checker_data==1:  
+                        msg=f"Hai selezionato: {st.session_state.data_prenotazione}"
+                        message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg}
+                        st.session_state.messages.append(message)            
+                        st.session_state.checker_data=0
+                        st.session_state.checker_ristoranti = 0
 
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)),"Ambiente.env"))
 azure_openai_endpoint = os.getenv("openai_endpoint")
@@ -1328,9 +1368,11 @@ def generate_response(prompt_input):
             if risposta1 in dizionario_cucine.keys():
                 return "Scegli ristorante di questa cucina"
             elif risposta2 in ristoranti:
-                st.session_state["checker_ristoranti"] = 1
+                st.session_state["risposta_ristorante"] = risposta2
+                st.session_state["checker_ristoranti"] = 2
                 st.session_state["checker_data"] = 1
-                return "Scegli la data della prenotazione"
+                st.session_state["checker_persone"] = 1
+                return "Selezione il numero di persone per la prenotazione."
             else:
                 return "Il ristorante non esiste"
             
@@ -1910,7 +1952,7 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
             message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response}
             st.session_state.messages.append(message)
             st.session_state.recensioni.append(message)
-    elif st.session_state.checker_ristoranti == 1:
+    elif st.session_state.checker_ristoranti > 0:
         message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response}
         st.session_state.messages.append(message)
         st.session_state.recensioni.append(message)
