@@ -1,6 +1,6 @@
 ######################################################
  
-#########      latest update: Aldo  ###############
+#########      latest update: Barbara  ###############
  
 ######################################################
 
@@ -24,7 +24,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 from langchain.prompts import PromptTemplate
 from langchain.chains import ConversationalRetrievalChain
-from datetime import datetime
+from datetime import datetime, date
 import streamlit_def_ultimo as sfun
 from PIL import Image
 import streamlit.components.v1 as components
@@ -253,7 +253,20 @@ else:
 # ---------------------------------------------------------End Checker Nota------------------------------------------------------------------------------------   
 risp_nota = ""
 
-
+#-----------------------------------------------------------------Begin Checker Ristoranti-------------------------------------------------------------------------
+if "checker_ristoranti" not in st.session_state:
+    checker_ristoranti = 0
+    st.session_state["checker_ristoranti"] = checker_ristoranti
+else:
+    checker_ristoranti = st.session_state["checker_ristoranti"]
+#-----------------------------------------------------------------End Checker Ristoranti------------------------------------------------------------------------------
+#-----------------------------------------------------------------Begin Counter widget------------------------------------------------------------------------------------
+if "widget_counter" not in st.session_state:
+    widget_counter = 0
+    st.session_state["widget_counter"] = widget_counter
+else:
+    widget_counter = st.session_state["widget_counter"]
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Display chat messages
 Like_buttons = []
 Dislike_buttons =[]
@@ -802,6 +815,43 @@ if "dizionario3" not in st.session_state:
 else:
     dizionario3 = st.session_state["dizionario3"]
 
+
+#-----------------------------------------------------------------------Ristoranti-----------------------------------------------------------------------------------------    
+
+ristoranti = ["Michelangelo", "Raffaello", "ying-yang", "Haveli", "Bella Italia", "Pizza360", "Wen", "Ritual", "Pegaso", "Greek Taverna", "My kimchi", "Istanbul", "Fusion", "Nippo", "Sushi Club", "Tao", "Gustoo", "Da Mario"]
+dizionario_cucine = {"cinese": ["ying-yang", "Wen"], "giapponese": ["Nippo", "Fusion", "Sushi Club", "Tao"], "italiana": ["Bella Italia", "Pizza360", "Gustoo", "Da Mario", "Michelangelo", "Raffaello"], "turca": ["Istanbul"], "malesiano": ["Pegaso"], "indiano": ["Haveli"], "greco": ["Greek Taverna"], "messicano": ["Ritual"], "coreano": ["My kimchi"]}
+
+if "chain_interpreta_ristoranti" not in st.session_state:
+    llm_partenza = AzureChatOpenAI(
+    deployment_name ="init-test-gpt-35-turbo",
+    model="gpt-35-turbo",
+    azure_endpoint = azure_openai_endpoint,
+    openai_api_type="azure",
+    openai_api_version = '2023-05-15',
+    openai_api_key = azure_openai_key,
+    temperature=0)
+
+    answer_prompt_nota = PromptTemplate.from_template(
+        """Data una lista di luoghi: {ristoranti} e una parola in entrata: {question}, trova nella lista la parola più simile o quella uguale, se c'è. La risposta deve contenere solo la parola selezionata dalla lista, scritta esattamente com'era scritta nella lista.
+            Esempio: Lista di luoghi: ["Roma", "Milano", "Firenze", "Napoli"] Parola in entrata: "Milano"
+            Risposta: Milano
+            Lista di luoghi: ["Roma", "Milano", "Firenze", "Napoli"] Parola in entrata: "Napl"
+            Risposta: Napoli
+        
+            Rispondi solo con la risposta
+
+        """
+    )
+
+    answer_nota = answer_prompt_nota | llm_partenza  
+    chain_interpreta_ristoranti = answer_nota
+    st.session_state["chain_interpreta_ristoranti"] = chain_interpreta_ristoranti
+else:
+    chain_interpreta_ristoranti = st.session_state["chain_interpreta_ristoranti"]
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 if "chain_jpg" not in st.session_state:
     llm = AzureChatOpenAI(
     deployment_name ="init-test-gpt-35-turbo",
@@ -905,7 +955,7 @@ if "chain" not in st.session_state:
       La struttura del content deve essere: 4#richiesta completa dell'utente. Ad esempio, un tipo di richiesta può essere la
       seguente: "Annotami che domani c'ho una riunione". In questo caso, il content sarà il seguente: 4#Annotami che domani c'ho una riunione;
     
-    - Restituiscimi soltanto 5 se l'utente richiede di leggere il contenuto del file note. Ad esempio, un tipo di richiesta può essere: "Fammi visualizzare le note scritte all'interno del file note";
+    - Restituiscimi soltanto 5# se l'utente richiede di leggere il contenuto del file note. Ad esempio, un tipo di richiesta può essere: "Fammi visualizzare le note scritte all'interno del file note";
 
     - Restituiscimi soltanto 6 se l'utente richiede di cancellare il contenuto del file note. Ad esempio, un tipo di richiesta può essere: "Elimina le note scritte all'interno del file note";
     
@@ -920,14 +970,22 @@ if "chain" not in st.session_state:
     Esempi di domande che possono essere poste e che ti aiuteranno ad interpretare la domanda da parte dell'utente sono: "Voglio fare una segnalazione", "Ho un problema" e "Voglio fare una segnalazione per un problema"
     
 
-    -Restituiscimi "10" se l'utente chiede di fare degli acquisti sui btp. Analizza la richiesta e individua la denominazione del btp, la quantità 
-    da acquistare. La struttura della risposta deve essere: "10"#denominazione del btp#quantità da acquistare. Se non viene
-    specificata la denominazione del btp, utilizza "stringa-segreta". Se non viene specificata la quantità da acquistare, utilizza "stringa-segreta".
+    -Restituiscimi "10" se l'utente chiede di fare una prenotazione o vuole mangiare in un determinato posto, indipendentemente dal tipo di cucina. 
+    Analizza la richiesta e individua il luogo della prenotazione oppure l'oggetto della domanda. 
+    La struttura della risposta deve essere: 10#luogo della prenotazione. Se non viene specificato il luogo, utilizza "stringa-segreta".
     Esempi: 
-    Domanda: Voglio acquistare un btp
-    Risposta: 10#stringa-segreta#stringa-segreta
-    Domanda : Voglio comprare Btpi-15st35 2,35%
-    Risposta: 10#Btpi-15st35 2,35%#stringa-segreta
+    Domanda: Voglio prenotare al ristorante michelangelo
+    Risposta: 10#ristorante michelangelo
+    Domanda : Voglio fare una prenotazione
+    Risposta: 10#stringa-segreta
+
+    -Restituiscimi "11" se l'utente vuole prenotare o vuole mangiare una particolare tipologia di cucina. 
+    Esempi di tipologie di cucine: italiana, cinese, giapponese, coreana, indiana, messicana, greca, turca, malesiana...
+    Esempi:
+    Domanda: Voglio mangiare cinese
+    Risposta: 11#cinese
+    Domanda: Voglio prenotare ad un ristorante giapponese
+    Risposta: 11#giapponese
 
     -Restituiscimi "12" se l'utente chiede di dargli delle indicazioni sul percorso migliore per arrivare da un punto di partenza ad un punto di arrivo. 
      I punti di arrivo e partenza possono essere o numeri di cabine, ascensori o ambienti ad esempio: market place, bar, capriccio lounge, ecc.. 
@@ -1003,6 +1061,7 @@ def generate_response(prompt_input):
     global risp_nota 
     risposta = chain.invoke({"question": prompt_input}).content #Stampami un Codice Isin casuale
     lista_risposta=risposta.split('#')
+    #return lista_risposta[1].split(" ")
 
 
     if lista_risposta[0].strip() == '1': #Text to SQL (Estrazione di informazioni da un dataset)
@@ -1085,8 +1144,8 @@ def generate_response(prompt_input):
 
                 for i, chunk in enumerate(chunks):
                     chunk.metadata['Titolo'] = df.loc[i, "Titolo"]
-                    date = df.loc[0, "Data_di_Pubblicazione"].strftime('%Y-%m-%d %H:%M:%S')  # Adjust format as needed
-                    chunk.metadata['Data_di_Pubblicazione'] = date
+                    date1 = df.loc[0, "Data_di_Pubblicazione"].strftime('%Y-%m-%d %H:%M:%S')  # Adjust format as needed
+                    chunk.metadata['Data_di_Pubblicazione'] = date1
 
                 batch_size = 30
                 # Suddividi i documenti in batch e processa ciascuno
@@ -1220,43 +1279,48 @@ def generate_response(prompt_input):
         #         return "Non hai inserito il testo della mail."
     
         
-    #ACQUISTO BTP
-    elif lista_risposta[0].strip() == "10":
-        st.session_state.buy_btp=lista_risposta[1]
-        st.session_state.buy_quantità=lista_risposta[2]
-        if "stringa-segreta" not in st.session_state.buy_btp:
-            if "stringa-segreta" not in st.session_state.buy_quantità:
-                st.session_state.buy_sicuro='s'
-                return "Sei sicuro di voler effettuare l'acquisto?"
+    #PRENOTAZIONI
+    elif lista_risposta[0].strip() == "10" or lista_risposta[0].strip() == "11":
+        risposta_ristoranti = lista_risposta[1].split(" ")
+        if len(risposta_ristoranti) == 1:
+            if risposta_ristoranti[0] == "stringa-segreta":
+                return "Scegli ristorante"
             else:
-                st.session_state.buy_checker=1
-                return "Inserisci il numero di lotti che vuoi acquistare"
+                risposta = chain_interpreta_ristoranti.invoke({"question": risposta_ristoranti[0], "ristoranti": dizionario_cucine.keys()}).content
+                return risposta
         else:
-            if "stringa-segreta" not in st.session_state.buy_quantità:
-                st.session_state.buy_checker=1
-                return "Inserisci la descrizione del BTP che vuoi acquistare"
+            risposta1 = chain_interpreta_ristoranti.invoke({"question": risposta_ristoranti[1], "ristoranti": dizionario_cucine.keys()}).content
+            risposta2 = chain_interpreta_ristoranti.invoke({"question": risposta_ristoranti[1], "ristoranti": ristoranti}).content
+            if risposta1 in dizionario_cucine.keys():
+                return "Scegli ristorante di questa cucina"
+            elif risposta2 in ristoranti:
+                st.session_state["checker_ristoranti"] = 1
+                d = st.date_input("When's your birthday", date(2019, 7, 6))
+                #d = st.date_input("Scegli la data della prenotazione", min_value=datetime.now().date(), max_value=date(2024, 8, 4), format="YYYY/MM/DD", label_visibility="visible", key="data input"+str(st.session_state.widget_counter))
+                st.session_state["widget_counter"] += 1
+                st.write(d)
+                return "ciao"
             else:
-                st.session_state.buy_checker=2
-                return "Inserisci la descrizione del BTP che vuoi acquistare "
+                return "Il ristorante non esiste"
             
     #VENDITA BTP   
-    elif lista_risposta[0].strip() == "11":
-        st.session_state.sell_btp=lista_risposta[1]
-        st.session_state.sell_quantità=lista_risposta[2]
-        if "stringa-segreta" not in st.session_state.sell_btp:
-            if "stringa-segreta" not in st.session_state.sell_quantità:
-                st.session_state.sell_sicuro='s'
-                return "Sei sicuro di voler effettuare la vendita?"
-            else:
-                st.session_state.sell_checker=1
-                return "Inserisci il numero di lotti che vuoi vendere"
-        else:
-            if "stringa-segreta" not in st.session_state.sell_quantità:
-                st.session_state.sell_checker=1
-                return "Inserisci la descrizione del BTP che vuoi vendere"
-            else:
-                st.session_state.sell_checker=2
-                return "Inserisci la descrizione del BTP che vuoi vendere"
+    # elif lista_risposta[0].strip() == "11":
+    #     st.session_state.sell_btp=lista_risposta[1]
+    #     st.session_state.sell_quantità=lista_risposta[2]
+    #     if "stringa-segreta" not in st.session_state.sell_btp:
+    #         if "stringa-segreta" not in st.session_state.sell_quantità:
+    #             st.session_state.sell_sicuro='s'
+    #             return "Sei sicuro di voler effettuare la vendita?"
+    #         else:
+    #             st.session_state.sell_checker=1
+    #             return "Inserisci il numero di lotti che vuoi vendere"
+    #     else:
+    #         if "stringa-segreta" not in st.session_state.sell_quantità:
+    #             st.session_state.sell_checker=1
+    #             return "Inserisci la descrizione del BTP che vuoi vendere"
+    #         else:
+    #             st.session_state.sell_checker=2
+    #             return "Inserisci la descrizione del BTP che vuoi vendere"
     
     #Tool Mappa
     elif lista_risposta[0].strip() == "12":
@@ -1683,7 +1747,6 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
                         st.session_state.sell_btp=prompt
                         response="Inserisci quanti lotti da 1000 Euro vuoi vendere"
                         st.session_state.sell_checker-=1
-
                 else:
                     try:
                         img1, img2, response = generate_response(prompt)  
