@@ -25,7 +25,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 from langchain.prompts import PromptTemplate
 from langchain.chains import ConversationalRetrievalChain
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import streamlit_def_ultimo as sfun
 from PIL import Image
 import streamlit.components.v1 as components
@@ -258,12 +258,13 @@ risp_nota = ""
 if "checker_ristoranti" not in st.session_state:
     checker_ristoranti = 0
     st.session_state["checker_ristoranti"] = checker_ristoranti
+    st.session_state["checker_data"]=0
 else:
     checker_ristoranti = st.session_state["checker_ristoranti"]
 #-----------------------------------------------------------------End Checker Ristoranti------------------------------------------------------------------------------
 #-----------------------------------------------------------------Begin data_prenotazione------------------------------------------------------------------------------------
 if "data_prenotazione" not in st.session_state:
-    data_prenotazione = datetime.now().date()
+    data_prenotazione = "no data"
     st.session_state["data_prenotazione"] = data_prenotazione
 else:
     data_prenotazione = st.session_state["data_prenotazione"]
@@ -271,6 +272,7 @@ else:
 # Display chat messages
 Like_buttons = []
 Dislike_buttons =[]
+Data_buttons =[]
 
 # Display chat messages
 container = st.container(height=560)
@@ -381,11 +383,16 @@ for i,message in enumerate(st.session_state.messages):
                         con.close()
             elif message["role"]=="data":
                 date_default= datetime.now().date()
-                d = exec(f'st.date_input("",value = datetime.now().date(), min_value=datetime.now().date(), max_value=date(2024, 8, 4), format="YYYY/MM/DD", label_visibility="collapsed", key={j})')
-                st.session_state.data_prenotazione = d
-                st.write(st.session_state.data_prenotazione)
+                exec(f'd_{j}=st.date_input("",value =datetime.now().date(), min_value=datetime.now().date(), max_value=date(2024, 8, 4), format="YYYY/MM/DD", label_visibility="collapsed", key={j})')
+                exec(f"st.session_state.data_prenotazione =d_{j}")
+                exec(f"Data_{j}=st.button('Conferma',key=f'btn_dislike{j}')")
+                exec(f"Data_buttons.append(Data_{j})")
+                if Data_buttons[-1]==True and st.session_state.checker_data==1:  
+                   msg=f"Hai selezionato: {st.session_state.data_prenotazione}"
+                   message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg}
+                   st.session_state.messages.append(message)            
+                   st.session_state.checker_data=0
                 st.session_state.checker_ristoranti = 0
- 
 
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)),"Ambiente.env"))
 azure_openai_endpoint = os.getenv("openai_endpoint")
@@ -1303,7 +1310,7 @@ def generate_response(prompt_input):
                 return "Scegli ristorante di questa cucina"
             elif risposta2 in ristoranti:
                 st.session_state["checker_ristoranti"] = 1
-                st.session_state["widget_counter"] += 1
+                st.session_state["checker_data"] = 1
                 return "Scegli la data della prenotazione"
             else:
                 return "Il ristorante non esiste"
@@ -1641,7 +1648,7 @@ with c2:
 
 
 # Generate a new response if last message is not from assistant
-if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.messages[-1]["role"] != "mail":
+if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.messages[-1]["role"] != "mail" and st.session_state.messages[-1]["role"] != "data":
     with container:
         with st.chat_message(name = "assistant", avatar='https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg'):
             with st.spinner("Sto pensando...🤔"):
