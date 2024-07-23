@@ -1,6 +1,6 @@
 ######################################################
  
-#########      latest update: Alessia  ###############
+#########      latest update: Francesco  ###############
  
 ######################################################
 
@@ -261,12 +261,12 @@ if "checker_ristoranti" not in st.session_state:
 else:
     checker_ristoranti = st.session_state["checker_ristoranti"]
 #-----------------------------------------------------------------End Checker Ristoranti------------------------------------------------------------------------------
-#-----------------------------------------------------------------Begin Counter widget------------------------------------------------------------------------------------
-if "widget_counter" not in st.session_state:
-    widget_counter = 0
-    st.session_state["widget_counter"] = widget_counter
+#-----------------------------------------------------------------Begin data_prenotazione------------------------------------------------------------------------------------
+if "data_prenotazione" not in st.session_state:
+    data_prenotazione = datetime.now().date()
+    st.session_state["data_prenotazione"] = data_prenotazione
 else:
-    widget_counter = st.session_state["widget_counter"]
+    data_prenotazione = st.session_state["data_prenotazione"]
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Display chat messages
 Like_buttons = []
@@ -379,6 +379,13 @@ for i,message in enumerate(st.session_state.messages):
                             con.commit()
 
                         con.close()
+            elif message["role"]=="data":
+                date_default= datetime.now().date()
+                d = exec(f'st.date_input("",value = datetime.now().date(), min_value=datetime.now().date(), max_value=date(2024, 8, 4), format="YYYY/MM/DD", label_visibility="collapsed", key={j})')
+                st.session_state.data_prenotazione = d
+                st.write(st.session_state.data_prenotazione)
+                st.session_state.checker_ristoranti = 0
+ 
 
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)),"Ambiente.env"))
 azure_openai_endpoint = os.getenv("openai_endpoint")
@@ -1296,11 +1303,8 @@ def generate_response(prompt_input):
                 return "Scegli ristorante di questa cucina"
             elif risposta2 in ristoranti:
                 st.session_state["checker_ristoranti"] = 1
-                d = st.date_input("When's your birthday", date(2019, 7, 6))
-                #d = st.date_input("Scegli la data della prenotazione", min_value=datetime.now().date(), max_value=date(2024, 8, 4), format="YYYY/MM/DD", label_visibility="visible", key="data input"+str(st.session_state.widget_counter))
                 st.session_state["widget_counter"] += 1
-                st.write(d)
-                return "ciao"
+                return "Scegli la data della prenotazione"
             else:
                 return "Il ristorante non esiste"
             
@@ -1789,7 +1793,7 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
 
 
                                 
-    if st.session_state.mail_checker == 0 and st.session_state.buy_checker==0 and st.session_state.buy_sicuro=='n' and st.session_state.sell_checker==0 and st.session_state.sell_sicuro=='n':
+    if st.session_state.mail_checker == 0 and st.session_state.checker_ristoranti==0:
         if st.session_state.cont_mappa == 1:
             if 'img1' in globals():
                 if img2 is None:
@@ -1814,6 +1818,10 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
             message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response}
             st.session_state.messages.append(message)
             st.session_state.recensioni.append(message)
+    elif st.session_state.checker_ristoranti == 1:
+        message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response}
+        st.session_state.messages.append(message)
+        st.session_state.recensioni.append(message)
     else:
         message = {"role": "mail", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response}
         st.session_state.messages.append(message)
