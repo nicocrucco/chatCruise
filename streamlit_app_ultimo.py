@@ -47,6 +47,8 @@ from PIL import Image
 import io
 from dotenv import load_dotenv
 import itertools
+from contextlib import suppress
+
 
 
 st.set_page_config(page_title="chatCruise",page_icon="🤖",layout="wide")
@@ -257,10 +259,18 @@ if 'prompt_mappa' not in st.session_state:
     st.session_state['prompt_mappa'] = prompt_mappa
 else:
     prompt_mappa = st.session_state['prompt_mappa']
+if 'specificazione_bar_o_ristorante' not in st.session_state:
+    specificazione_bar_o_ristorante = ''
+    st.session_state['specificazione_bar_o_ristorante'] = specificazione_bar_o_ristorante
+else:
+    specificazione_bar_o_ristorante = st.session_state['specificazione_bar_o_ristorante']
+if 'arrivo' not in st.session_state:
+    arrivo = ''
+    st.session_state['arrivo'] = arrivo
+else:
+    arrivo = st.session_state['arrivo']
 # ---------------------------------------------------------End Save prompt------------------------------------------------------------------------------------   
-
 risp_nota = ""
-arrivo = ""
 
 # Display chat messages
 Like_buttons = []
@@ -1009,7 +1019,6 @@ def generate_response(prompt_input):
     st.session_state['cont_mappa'] = cont_mappa
     st.session_state['checker_nota'] = checker_nota
     global risp_nota 
-    global arrivo 
     risposta = chain.invoke({"question": prompt_input}).content #Stampami un Codice Isin casuale
     lista_risposta=risposta.split('#')
 
@@ -1272,8 +1281,6 @@ def generate_response(prompt_input):
         st.session_state['prompt_mappa'] = prompt_input
         cont_mappa_display = 1
         st.session_state["cont_mappa_display"] = cont_mappa_display
-        cont_mappa += 1
-        st.session_state["cont_mappa"] = cont_mappa
 
         lista_partenza_arrivo = lista_risposta[1:len(lista_risposta)]
 
@@ -1290,13 +1297,11 @@ def generate_response(prompt_input):
         tmp = sfun.verifica_partenza_arrivo(st.session_state["dizionario1"], st.session_state["dizionario2"], st.session_state["dizionario3"], partenza, arrivo)
 
         if tmp == 0.1:
-            return """A quale ristorante vuoi andare? 
-            - Ristorante Michelangelo;
-            - Ristorante Raffaello."""
+            st.session_state["arrivo"] = arrivo
+            return "A quale ristorante vuoi andare? Ristorante Michelangelo o Ristorante Raffaello."
         elif tmp == 0.2:
-            return """A quale bar vuoi andare?
-            - Bar Bellavista;
-            - Bar Costa."""
+            st.session_state["arrivo"] = arrivo
+            return "A quale bar vuoi andare? Bar Bellavista o Bar Costa."
         elif tmp == 1:
             return "Il punto di partenza e il punto di arrivo indicati non sono presenti a bordo. Rielabora la richiesta."
         elif tmp == 2:
@@ -1305,7 +1310,9 @@ def generate_response(prompt_input):
             return "Il punto di arrivo indicato non è presente a bordo. Rielabora la richiesta."
         else:
             cont_piano = 0
-
+            cont_mappa += 1
+            st.session_state["cont_mappa"] = cont_mappa
+        
         ascensori1 = {
             'ascensore 1':[161,348],
             'ascensore 2':[161,843]
@@ -1702,6 +1709,36 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
                         st.session_state.sell_btp=prompt
                         response="Inserisci quanti lotti da 1000 Euro vuoi vendere"
                         st.session_state.sell_checker-=1
+
+                elif st.session_state["specificazione_bar_o_ristorante"] == "sì":
+                    nuovo_prompt = sfun.replace_occurrence(st.session_state["prompt_mappa"], arrivo, prompt.lower())
+                    img1, img2, response = generate_response(nuovo_prompt)
+                    st.session_state["specificazione_bar_o_ristorante"] = ""
+                    if 'img1' in globals():
+                            if img2 is None: 
+                                st.image(img1, caption='Mappa', width = 320)
+                                st.markdown(response)
+                                # Creare un oggetto PIL.Image dall'immagine matrice
+                                image_buffer = Image.fromarray(img1)
+                                # Converti l'immagine PIL in un buffer di memoria
+                                buffer = io.BytesIO()
+                                image_buffer.save(buffer, format="PNG")
+                                buffer.seek(0)
+                            else:
+                                st.image(img1, caption='Mappa', width = 320)
+                                st.image(img2, caption='Mappa', width = 320)
+
+                                st.markdown(response)
+                                # Creare un oggetto PIL.Image dall'immagine matrice
+                                image1_buffer = Image.fromarray(img1)
+                                image2_buffer = Image.fromarray(img2)
+                                # Converti l'immagine PIL in un buffer di memoria
+                                buffer1 = io.BytesIO()
+                                buffer2 = io.BytesIO()
+                                image1_buffer.save(buffer1, format="PNG")
+                                image2_buffer.save(buffer2, format = 'PNG')
+                                buffer1.seek(0)
+                                buffer2.seek(0)
                 else:
                     try:
                         img1, img2, response = generate_response(prompt)                              
@@ -1713,19 +1750,31 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
                                 response = generate_response(prompt)
                             else:
                                 response = generate_response(prompt)
-                                st.markdown(response) 
-                                while True:
-                                    try:
-                                        user_input = st.text_input(f"A quale {arrivo} vuoi recarti?", key = "user_input")
-                                        if user_input:
-                                            prompt = sfun.replace_occurrence(st.session_state["prompt_mappa"], arrivo, user_input.lower())
-                                            img1, img2, response = generate_response(prompt)
-                                            break
-                                        else:
-                                            continue
-                                    except Exception as e:
-                                        pass
-        
+                                st.markdown(response)
+                                if response == "A quale ristorante vuoi andare? Ristorante Michelangelo o Ristorante Raffaello." or response == "A quale bar vuoi andare? Bar Bellavista o Bar Costa.":
+                                    st.session_state["specificazione_bar_o_ristorante"] = "sì"
+                                # Chiedi all'utente di inserire un prompt
+                                # while True:                              
+                                #     user_input = st.text_input('Per favore inserisci il tuo prompt:')
+                                #     if user_input:
+                                #         prompt = sfun.replace_occurrence(st.session_state["prompt_mappa"], arrivo, user_input.lower())
+                                #         img1, img2, response = generate_response(prompt)
+                                #         break
+                                #     else:
+                                #         pass
+                                
+                                # while user_input is None:
+                                #     with suppress(Exception):
+                                #         user_input = st.text_input('Per favore inserisci il tuo prompt:', value = "")
+                                #         user_input = None if user_input == "" else user_input
+
+                                #         if user_input is not None:
+                                #             prompt = sfun.replace_occurrence(st.session_state["prompt_mappa"], arrivo, user_input.lower())
+                                #             img1, img2, response = generate_response(prompt)
+                                #             break
+                                #         else:
+                                #             pass
+
                     if st.session_state['cont_mappa'] == 1:
                         if 'img1' in globals():
                             if img2 is None: 
