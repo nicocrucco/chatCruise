@@ -235,7 +235,7 @@ if 'cont_mappa_display' not in st.session_state:
     st.session_state['cont_mappa_display'] = 0
 else:
     cont_mappa_display = st.session_state['cont_mappa_display']
-# ---------------------------------------------------------End Checker Mappa------------------------------------------------------------------------------------   
+# ---------------------------------------------------------End Checker Mappa-------------------------------------------------------------------------------------- 
 # ---------------------------------------------------------Begin Checker Recensioni------------------------------------------------------------------------------------  
 if 'recensioni' not in st.session_state:
     recensioni = list()
@@ -250,9 +250,17 @@ if 'checker_nota' not in st.session_state:
     st.session_state['checker_nota'] = 0
 else:
     checker_nota = st.session_state['checker_nota']
-# ---------------------------------------------------------End Checker Nota------------------------------------------------------------------------------------   
-risp_nota = ""
+# ---------------------------------------------------------End Checker Nota------------------------------------------------------------------------------------ 
+# ---------------------------------------------------------Begin Save prompt------------------------------------------------------------------------------------   
+if 'prompt_mappa' not in st.session_state:
+    prompt_mappa = ''
+    st.session_state['prompt_mappa'] = prompt_mappa
+else:
+    prompt_mappa = st.session_state['prompt_mappa']
+# ---------------------------------------------------------End Save prompt------------------------------------------------------------------------------------   
 
+risp_nota = ""
+arrivo = ""
 
 # Display chat messages
 Like_buttons = []
@@ -1001,6 +1009,7 @@ def generate_response(prompt_input):
     st.session_state['cont_mappa'] = cont_mappa
     st.session_state['checker_nota'] = checker_nota
     global risp_nota 
+    global arrivo 
     risposta = chain.invoke({"question": prompt_input}).content #Stampami un Codice Isin casuale
     lista_risposta=risposta.split('#')
 
@@ -1260,6 +1269,7 @@ def generate_response(prompt_input):
     
     #Tool Mappa
     elif lista_risposta[0].strip() == "12":
+        st.session_state['prompt_mappa'] = prompt_input
         cont_mappa_display = 1
         st.session_state["cont_mappa_display"] = cont_mappa_display
         cont_mappa += 1
@@ -1279,7 +1289,15 @@ def generate_response(prompt_input):
 
         tmp = sfun.verifica_partenza_arrivo(st.session_state["dizionario1"], st.session_state["dizionario2"], st.session_state["dizionario3"], partenza, arrivo)
 
-        if tmp == 1:
+        if tmp == 0.1:
+            return """A quale ristorante vuoi andare? 
+            - Ristorante Michelangelo;
+            - Ristorante Raffaello."""
+        elif tmp == 0.2:
+            return """A quale bar vuoi andare?
+            - Bar Bellavista;
+            - Bar Costa."""
+        elif tmp == 1:
             return "Il punto di partenza e il punto di arrivo indicati non sono presenti a bordo. Rielabora la richiesta."
         elif tmp == 2:
             return "Il punto di partenza indicato non è presente a bordo. Rielabora la richiesta."
@@ -1501,6 +1519,7 @@ def generate_response(prompt_input):
             risposta = chain_jpg.invoke({'dizionario_template':dizionario1_template,'partenza':p,'arrivo':a}).content
             if 'ascensore' in partenza:
                 risposta = str_partenza_ascensore + risposta
+            st.session_state["prompt_mappa"] = ''
             return im, None, risposta
         elif cont_piano == 1:
             risposta_1 = chain_jpg.invoke({'dizionario_template':dizionario1_template,'partenza':p1,'arrivo':a1}).content
@@ -1517,7 +1536,7 @@ def generate_response(prompt_input):
                 else:
                     stringa = " Arrivato alla zona ascensore, scendi di {} piani. ".format(piano_partenza-piano_arrivo)
             risposta = risposta_1 + stringa + risposta_2
-
+            st.session_state["prompt_mappa"] = ''
             return im1, im2, risposta
 
 
@@ -1683,16 +1702,30 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
                         st.session_state.sell_btp=prompt
                         response="Inserisci quanti lotti da 1000 Euro vuoi vendere"
                         st.session_state.sell_checker-=1
-
                 else:
                     try:
-                        img1, img2, response = generate_response(prompt)  
+                        img1, img2, response = generate_response(prompt)                              
                     except Exception as e:
                         if st.session_state.checker_nota == 1:
                             response = risp_nota
                         else:
-                            response = generate_response(prompt)
-                    
+                            if st.session_state["prompt_mappa"] == "":
+                                response = generate_response(prompt)
+                            else:
+                                response = generate_response(prompt)
+                                st.markdown(response) 
+                                while True:
+                                    try:
+                                        user_input = st.text_input(f"A quale {arrivo} vuoi recarti?", key = "user_input")
+                                        if user_input:
+                                            prompt = sfun.replace_occurrence(st.session_state["prompt_mappa"], arrivo, user_input.lower())
+                                            img1, img2, response = generate_response(prompt)
+                                            break
+                                        else:
+                                            continue
+                                    except Exception as e:
+                                        pass
+        
                     if st.session_state['cont_mappa'] == 1:
                         if 'img1' in globals():
                             if img2 is None: 
@@ -1707,6 +1740,7 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
                             else:
                                 st.image(img1, caption='Mappa', width = 320)
                                 st.image(img2, caption='Mappa', width = 320)
+
                                 st.markdown(response)
                                 # Creare un oggetto PIL.Image dall'immagine matrice
                                 image1_buffer = Image.fromarray(img1)

@@ -473,6 +473,10 @@ def verifica_partenza_arrivo(dizionario1, dizionario2, dizionario3, partenza, ar
     dizionario = dizionario1 | dizionario2 | dizionario3
     dizionario['ascensore'] = None
     dizionario['ascensori'] = None 
+    if arrivo == "ristorante":
+        return 0.1
+    if arrivo == "bar":
+        return 0.2
     if partenza not in dizionario.keys() and arrivo not in dizionario.keys():
         return 1
     elif partenza not in dizionario.keys():
@@ -481,3 +485,30 @@ def verifica_partenza_arrivo(dizionario1, dizionario2, dizionario3, partenza, ar
         return 3
     else:
         return 9
+
+def replace_occurrence(text, old_word, new_word):
+    # Trova la prima occorrenza della parola
+    first_occurrence_index = text.find(old_word)
+    
+    # Trova la seconda occorrenza della parola
+    second_occurrence_index = text.find(old_word, first_occurrence_index + len(old_word))
+
+    text_split = text.split()
+    if "ristorante" == text_split[len(text_split)-1] or "bar" == text_split[len(text_split)-1]: #caso in cui è specificata prima la partenza e poi l'arrivo
+        if second_occurrence_index != -1:
+            # Se la seconda occorrenza esiste, sostituiscila
+            before_second = text[:second_occurrence_index]
+            after_second = text[second_occurrence_index:].replace(old_word, new_word, 1)
+            return before_second + after_second
+        else:
+            text = text.replace(old_word, new_word)
+            return text
+    else:
+        if second_occurrence_index != -1:
+            # Se la seconda occorrenza esiste, sostituiscila
+            before_second = text[:second_occurrence_index].replace(old_word, new_word, 1)
+            after_second = text[second_occurrence_index:]
+            return before_second + after_second
+        else:
+            text = text.replace(old_word, new_word)
+            return text
