@@ -283,8 +283,8 @@ else:
     checker_ristoranti = st.session_state["checker_ristoranti"]
 #-----------------------------------------------------------------End Checker Ristoranti------------------------------------------------------------------------------
 #-------------------------------------------------------------Dizionari cucine---------------------------------------------------------------------------------------
-ristoranti = ["Michelangelo", "Raffaello", "ying-yang", "Haveli", "Bella Italia", "Pizza360", "Wen", "Ritual", "Pegaso", "Greek Taverna", "My kimchi", "Istanbul", "Fusion", "Nippo", "Sushi Club", "Tao", "Gustoo", "Da Mario"]
-dizionario_cucine = {"cinese": ["ying-yang", "Wen"], "giapponese": ["Nippo", "Fusion", "Sushi Club", "Tao"], "italiana": ["Bella Italia", "Pizza360", "Gustoo", "Da Mario", "Michelangelo", "Raffaello"], "turca": ["Istanbul"], "malesiano": ["Pegaso"], "indiano": ["Haveli"], "greco": ["Greek Taverna"], "messicano": ["Ritual"], "coreano": ["My kimchi"]}
+ristoranti = ["Michelangelo", "Raffaello", "ying-yang", "Haveli", "Bella Italia", "Pizza360", "Wen", "Ritual", "Pegaso", "Greek Taverna", "My kimchi", "Istanbul", "Fusion", "Nippo", "Sushi Club", "Tao", "Gustoo", "Da Mario","Piedra del Sol","Burrito"]
+dizionario_cucine = {"cinese": ["ying-yang", "Wen"], "giapponese": ["Nippo", "Fusion", "Sushi Club"], "italiana": ["Bella Italia", "Pizza360", "Gustoo", "Da Mario", "Michelangelo", "Raffaello"], "turca": ["Istanbul"], "malesiano": ["Pegaso"], "indiano": ["Haveli"], "greco": ["Greek Taverna"], "messicano": ["Ritual","Tao","Burrito","Piedra del Sol"], "coreano": ["My kimchi"]}
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------Begin data_prenotazione------------------------------------------------------------------------------------
 if "data_prenotazione" not in st.session_state:
@@ -424,7 +424,11 @@ for i,message in enumerate(st.session_state.messages):
                 for i in dizionario_cucine[st.session_state["risposta_cucina"][contatore_data]]:
                     lista_cucine.append(i)
                 if len(lista_cucine)==1:
-                    pass
+                    st.session_state.checker_ristoranti[contatore_data] -= 1 
+                    st.session_state['risposta_ristorante'][contatore_data]=lista_cucine[0]
+                    msg=f"Il ristorante che hai scelto è: {st.session_state['risposta_ristorante'][contatore_data]}"
+                    message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli il numero di persone.", "contatore": st.session_state.checker_ristoranti[contatore_data]}
+                    st.session_state.messages.append(message)
 
                 elif len(lista_cucine)==2:
                     col1,col2, col3, col4, col5= st.columns([2,5,3,5,2])
@@ -435,8 +439,8 @@ for i,message in enumerate(st.session_state.messages):
                             st.session_state.checker_cucina[contatore_data]=0
                             st.session_state['risposta_ristorante'][contatore_data]=lista_cucine[0]
                             msg=f"Il ristorante che hai scelto è: {st.session_state['risposta_ristorante'][contatore_data]}"
-                            message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli la data e la fascia oraria tra quelle disponibili.", "contatore": st.session_state.checker_ristoranti[contatore_data]}
-                        
+                            message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli il numero di persone.", "contatore": st.session_state.checker_ristoranti[contatore_data]}
+                            st.session_state.messages.append(message)
  
                     with col4:
                         if st.button(lista_cucine[1],key=f'button_due_{j}') and st.session_state.checker_cucina[contatore_data]==1:
@@ -444,16 +448,86 @@ for i,message in enumerate(st.session_state.messages):
                             st.session_state.checker_cucina[contatore_data]=0
                             st.session_state['risposta_ristorante'][contatore_data]=lista_cucine[1]
                             msg=f"Il ristorante che hai scelto è: {st.session_state['risposta_ristorante'][contatore_data]}"
-                            message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli la data e la fascia oraria tra quelle disponibili.", "contatore": st.session_state.checker_ristoranti[contatore_data]}
-
+                            message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli il numero di persone.", "contatore": st.session_state.checker_ristoranti[contatore_data]}
+                            st.session_state.messages.append(message)
                             
 
                 elif len(lista_cucine)==3:
-                      pass
+                    col1,col2, col3, col4, col5, col6, col7= st.columns([1,2,1,2,1,2,1])
+ 
+                    with col2:
+                        if st.button(lista_cucine[0],key=f'button_uno_{j}') and st.session_state.checker_cucina[contatore_data]==1:
+                            st.session_state.checker_ristoranti[contatore_data] -= 1 
+                            st.session_state.checker_cucina[contatore_data]=0
+                            st.session_state['risposta_ristorante'][contatore_data]=lista_cucine[0]
+                            msg=f"Il ristorante che hai scelto è: {st.session_state['risposta_ristorante'][contatore_data]}"
+                            message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli il numero di persone.", "contatore": st.session_state.checker_ristoranti[contatore_data]}
+                            st.session_state.messages.append(message)
+
+                    with col4:
+                        if st.button(lista_cucine[1],key=f'button_due_{j}') and st.session_state.checker_cucina[contatore_data]==1:
+                            st.session_state.checker_ristoranti[contatore_data] -= 1 
+                            st.session_state.checker_cucina[contatore_data]=0
+                            st.session_state['risposta_ristorante'][contatore_data]=lista_cucine[1]
+                            msg=f"Il ristorante che hai scelto è: {st.session_state['risposta_ristorante'][contatore_data]}"
+                            message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli il numero di persone.", "contatore": st.session_state.checker_ristoranti[contatore_data]}
+                            st.session_state.messages.append(message)
+                    with col6:
+                        if st.button(lista_cucine[2],key=f'button_tre_{j}') and st.session_state.checker_cucina[contatore_data]==1:
+                            st.session_state.checker_ristoranti[contatore_data] -= 1 
+                            st.session_state.checker_cucina[contatore_data]=0
+                            st.session_state['risposta_ristorante'][contatore_data]=lista_cucine[2]
+                            msg=f"Il ristorante che hai scelto è: {st.session_state['risposta_ristorante'][contatore_data]}"
+                            message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli il numero di persone.", "contatore": st.session_state.checker_ristoranti[contatore_data]}
+                            st.session_state.messages.append(message)
                 elif len(lista_cucine)==4:
-                    pass
+                    col1,col2, col3, col4, col5, col6, col7,col8,col9= st.columns([1,2,1,2,1,2,1,2,1])
+ 
+                    with col2:
+                        if st.button(lista_cucine[0],key=f'button_uno_{j}') and st.session_state.checker_cucina[contatore_data]==1:
+                            st.session_state.checker_ristoranti[contatore_data] -= 1 
+                            st.session_state.checker_cucina[contatore_data]=0
+                            st.session_state['risposta_ristorante'][contatore_data]=lista_cucine[0]
+                            msg=f"Il ristorante che hai scelto è: {st.session_state['risposta_ristorante'][contatore_data]}"
+                            message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli il numero di persone.", "contatore": st.session_state.checker_ristoranti[contatore_data]}
+                            st.session_state.messages.append(message)
+
+                    with col4:
+                        if st.button(lista_cucine[1],key=f'button_due_{j}') and st.session_state.checker_cucina[contatore_data]==1:
+                            st.session_state.checker_ristoranti[contatore_data] -= 1 
+                            st.session_state.checker_cucina[contatore_data]=0
+                            st.session_state['risposta_ristorante'][contatore_data]=lista_cucine[1]
+                            msg=f"Il ristorante che hai scelto è: {st.session_state['risposta_ristorante'][contatore_data]}"
+                            message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli il numero di persone.", "contatore": st.session_state.checker_ristoranti[contatore_data]}
+                            st.session_state.messages.append(message)
+                    with col6:
+                        if st.button(lista_cucine[2],key=f'button_tre_{j}') and st.session_state.checker_cucina[contatore_data]==1:
+                            st.session_state.checker_ristoranti[contatore_data] -= 1 
+                            st.session_state.checker_cucina[contatore_data]=0
+                            st.session_state['risposta_ristorante'][contatore_data]=lista_cucine[2]
+                            msg=f"Il ristorante che hai scelto è: {st.session_state['risposta_ristorante'][contatore_data]}"
+                            message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli il numero di persone.", "contatore": st.session_state.checker_ristoranti[contatore_data]}
+                            st.session_state.messages.append(message)
+                    
+                    with col8:
+                        if st.button(lista_cucine[3],key=f'button_quattro_{j}') and st.session_state.checker_cucina[contatore_data]==1:
+                            st.session_state.checker_ristoranti[contatore_data] -= 1 
+                            st.session_state.checker_cucina[contatore_data]=0
+                            st.session_state['risposta_ristorante'][contatore_data]=lista_cucine[3]
+                            msg=f"Il ristorante che hai scelto è: {st.session_state['risposta_ristorante'][contatore_data]}"
+                            message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli il numero di persone.", "contatore": st.session_state.checker_ristoranti[contatore_data]}
+                            st.session_state.messages.append(message)
                 else:#Mettiamo la tendina
-                    pass
+                    exec(f'd_{j}=st.selectbox(" ",{lista_cucine}, key={j},label_visibility = "collapsed")')
+                    exec(f"st.session_state['risposta_ristorante'][contatore_data] =d_{j}")
+                    exec(f"Data_{j}=st.button('Conferma',key=f'btn_dislike{j}')")
+                    exec(f"Data_buttons.append(Data_{j})")
+                    if Data_buttons[-1]==True and st.session_state.checker_cucina[contatore_data]==1:
+                        st.session_state.checker_ristoranti[contatore_data] -= 1
+                        msg=f"Il ristorante che hai scelto è: {st.session_state['risposta_ristorante'][contatore_data]}"
+                        message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg+ ". Scegli il numero di persone.","contatore": st.session_state.checker_ristoranti[contatore_data]}
+                        st.session_state.messages.append(message)            
+                        st.session_state.checker_cucina[contatore_data]=0
 
                 
                 
@@ -1187,7 +1261,6 @@ def generate_response(prompt_input):
     global risp_nota 
     risposta = chain.invoke({"question": prompt_input}).content #Stampami un Codice Isin casuale
     lista_risposta=risposta.split('#')
-    #return lista_risposta[1].split(" ")
 
 
     if lista_risposta[0].strip() == '1': #Text to SQL (Estrazione di informazioni da un dataset)
@@ -1414,12 +1487,20 @@ def generate_response(prompt_input):
                 return "Scegli ristorante"
             else:
                 risposta = chain_interpreta_ristoranti.invoke({"question": risposta_ristoranti[0], "ristoranti": dizionario_cucine.keys()}).content
-                return risposta
+                st.session_state["risposta_cucina"].append(risposta)
+                st.session_state["risposta_ristorante"].append(1)
+                st.session_state["checker_ristoranti"].append(3)
+                st.session_state["checker_data"].append(1)
+                st.session_state["checker_persone"].append(1)
+                st.session_state.persone_prenotate.append(1)
+                st.session_state.data_prenotazione.append(1)
+                st.session_state.checker_cucina.append(1)
+                risp_nota ="Scegli il ristorante di questa cucina"
+                return "Scegli il ristorante di questa cucina"
         else:
             risposta1 = chain_interpreta_ristoranti.invoke({"question": risposta_ristoranti[1], "ristoranti": dizionario_cucine.keys()}).content
             risposta2 = chain_interpreta_ristoranti.invoke({"question": risposta_ristoranti[1], "ristoranti": ristoranti}).content
             if risposta1 in dizionario_cucine.keys():
-                st.write("Ciao")
                 st.session_state["risposta_cucina"].append(risposta1)
                 st.session_state["risposta_ristorante"].append(1)
                 st.session_state["checker_ristoranti"].append(3)
@@ -1428,6 +1509,7 @@ def generate_response(prompt_input):
                 st.session_state.persone_prenotate.append(1)
                 st.session_state.data_prenotazione.append(1)
                 st.session_state.checker_cucina.append(1)
+                risp_nota ="Scegli il ristorante di questa cucina"
                 return "Scegli il ristorante di questa cucina"
             elif risposta2 in ristoranti:
                 st.session_state["risposta_ristorante"].append(risposta2)
@@ -1438,6 +1520,7 @@ def generate_response(prompt_input):
                 st.session_state.persone_prenotate.append(1)
                 st.session_state.data_prenotazione.append(1)
                 st.session_state.checker_cucina.append(1)
+                risp_nota="Selezione il numero di persone per la prenotazione."
                 return "Selezione il numero di persone per la prenotazione."
             else:
                 return "Il ristorante non esiste"
