@@ -534,3 +534,21 @@ def replace_occurrence(text, old_word, new_word):
             else:
                 text = text.replace(old_word, old_word + ' ' + new_word)
                 return text
+            
+def Prenotazione_Ristoranti(Id_cliente,Luogo,FasciaOraria,Numero_persone):
+
+    lista=FasciaOraria.split(" ")
+    Giorno =lista[1]
+    Orario = lista[-1]
+
+    con= pyodbc.connect('DRIVER={SQL Server};SERVER=bubidb.database.windows.net;DATABASE=mlacademy-sqldb;UID=MLacademy;PWD=alten-ML-academy2023')
+    cursor= con.cursor()
+    insert_query = """ INSERT INTO Prenotazioni 
+                        VALUES (?,?,?,?,?)"""
+    cursor.execute(insert_query,(Id_cliente,Luogo,Orario,Giorno,Numero_persone))
+    update_query= """UPDATE Ristoranti
+                    SET CapienzaTotale = CapienzaTotale - ?
+                    WHERE NomeRistorante =? AND FasciaOraria =? AND Giorno = ?;"""
+    cursor.execute(update_query,(Numero_persone,Luogo,Orario,Giorno))
+    con.commit()
+    con.close()

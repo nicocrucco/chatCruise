@@ -219,8 +219,7 @@ if "RAG_checker" not in st.session_state.keys():
 # ---------------------------------------------------------End Checker RAG------------------------------------------------------------------------------------   
 # Store LLM generated responses
 if "messages" not in st.session_state.keys():
-    st.session_state.messages = [{"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg', "content": "Benvenuto a bordo!👋🏻\n\n Sono il tuo assistant navigator, come posso aiutarti?"}]
-
+    st.session_state.messages = [{"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg', "content": "Benvenuto a bordo!👋🏻\n\n Sono il tuo assistant navigator, come posso aiutarti?","contatore" : 0}]
 if 'cont' not in st.session_state:
     cont = 0
     st.session_state['cont'] = 0
@@ -410,49 +409,48 @@ for i,message in enumerate(st.session_state.messages):
                             con.commit()
 
                         con.close()
-            elif message["role"]=="data":
-                if st.session_state.checker_ristoranti == 2:
-                    exec(f'p_{j}=st.number_input("",min_value = 1, max_value = 50, key={j},label_visibility = "collapsed")')
-                    exec(f"st.session_state.persone_prenotate =p_{j}")
-                    exec(f"Data_{j}=st.button('Conferma',key=f'btn_dislike{j}')")
-                    exec(f"Data_buttons.append(Data_{j})")
-                    if Data_buttons[-1]==True and st.session_state.checker_persone == 1:  
-                        msg=f"Il numero di persone è: {st.session_state.persone_prenotate}"
-                        message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli la data e la fascia oraria tra quelle disponibili."}
-                        st.session_state.messages.append(message)
-                        # msg="Scegli la data e la fascia oraria tra quelle disponibili."
-                        # message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg}
-                        # st.session_state.messages.append(message)
-                        st.session_state.checker_persone=0
-                        st.session_state.checker_ristoranti -= 1
-                        st.markdown("Prova1")
-                elif st.session_state.checker_ristoranti == 1:
-                    con= pyodbc.connect('DRIVER={SQL Server};SERVER=bubidb.database.windows.net;DATABASE=mlacademy-sqldb;UID=MLacademy;PWD=alten-ML-academy2023')
-                    cursor= con.cursor()
-                    select_date_disponibili = """SELECT Giorno, FasciaOraria
-                                            FROM Ristoranti
-                                            WHERE NomeRistorante = ? AND CapienzaTotale >= ? AND Giorno >= CONVERT(date, GETDATE());"""
-                    cursor.execute(select_date_disponibili,(st.session_state.risposta_ristorante,st.session_state.persone_prenotate))
-                    lista_date_disponibili = []
-                    for row in cursor.fetchall():
-                        lista_date_disponibili.append(row)
+            elif message["role"]=="data" and message["contatore"] == 2:
+                exec(f'p_{j}=st.number_input(" ",min_value = 1, max_value = 50, key={j},label_visibility = "collapsed")')
+                exec(f"st.session_state.persone_prenotate =p_{j}")
+                exec(f"Data_{j}=st.button('Conferma',key=f'btn_dislike{j}')")
+                exec(f"Data_buttons.append(Data_{j})")
+                if Data_buttons[-1]==True and st.session_state.checker_persone == 1:
+                    st.session_state.checker_ristoranti -= 1  
+                    msg=f"Il numero di persone è: {st.session_state.persone_prenotate}"
+                    message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli la data e la fascia oraria tra quelle disponibili.", "contatore": st.session_state.checker_ristoranti}
+                    st.session_state.messages.append(message)
+                    st.session_state.checker_persone=0
+                    
 
-                    lista_box=[]
-                    for i in lista_date_disponibili:
-                        lista_box.append("Data: " + i[0] + " Fascia Oraria: " + i[1])
-                    con.close()
+            elif message["role"]=="data" and message["contatore"] == 1:
+                con= pyodbc.connect('DRIVER={SQL Server};SERVER=bubidb.database.windows.net;DATABASE=mlacademy-sqldb;UID=MLacademy;PWD=alten-ML-academy2023')
+                cursor= con.cursor()
+                select_date_disponibili = """SELECT Giorno, FasciaOraria
+                                        FROM Ristoranti
+                                        WHERE NomeRistorante = ? AND CapienzaTotale >= ? AND Giorno >= CONVERT(date, GETDATE());"""
+                cursor.execute(select_date_disponibili,(st.session_state.risposta_ristorante,st.session_state.persone_prenotate))
+                lista_date_disponibili = []
+                for row in cursor.fetchall():
+                    lista_date_disponibili.append(row)
 
-                    date_default= datetime.now().date()
-                    exec(f'd_{j}=st.selectbox("",{lista_box}, key={j},label_visibility = "collapsed")')
-                    exec(f"st.session_state.data_prenotazione =d_{j}")
-                    exec(f"Data_{j}=st.button('Conferma',key=f'btn_dislike{j}')")
-                    exec(f"Data_buttons.append(Data_{j})")
-                    if Data_buttons[-1]==True and st.session_state.checker_data==1:  
-                        msg=f"Hai selezionato: {st.session_state.data_prenotazione}"
-                        message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg}
-                        st.session_state.messages.append(message)            
-                        st.session_state.checker_data=0
-                        st.session_state.checker_ristoranti = 0
+                lista_box=[]
+                for i in lista_date_disponibili:
+                    lista_box.append("Data: " + i[0] + " Fascia Oraria: " + i[1])
+                con.close()
+
+                date_default= datetime.now().date()
+                exec(f'd_{j}=st.selectbox(" ",{lista_box}, key={j},label_visibility = "collapsed")')
+                exec(f"st.session_state.data_prenotazione =d_{j}")
+                exec(f"Data_{j}=st.button('Conferma',key=f'btn_dislike{j}')")
+                exec(f"Data_buttons.append(Data_{j})")
+                if Data_buttons[-1]==True and st.session_state.checker_data==1:
+                    st.session_state.checker_ristoranti = 0
+                    msg=f"Prenotazione effettuata: {st.session_state.data_prenotazione}"
+                    sfun.Prenotazione_Ristoranti(1984,st.session_state.risposta_ristorante,st.session_state.data_prenotazione,st.session_state.persone_prenotate)
+                    message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg,"contatore": st.session_state.checker_ristoranti}
+                    st.session_state.messages.append(message)            
+                    st.session_state.checker_data=0
+                    
                     
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)),"Ambiente.env"))
 azure_openai_endpoint = os.getenv("openai_endpoint")
@@ -1694,8 +1692,8 @@ c1,c2 = st.columns([30,1])
 # User-provided prompt
 with c1:
     if prompt := st.chat_input():
-        st.session_state.messages.append({"role": "user",  "avatar": 'https://www.clipartmax.com/png/middle/434-4349876_profile-icon-vector-png.png', "content": prompt})
-        st.session_state.recensioni.append({"role": "user",  "avatar": 'https://www.clipartmax.com/png/middle/434-4349876_profile-icon-vector-png.png', "content": prompt})
+        st.session_state.messages.append({"role": "user",  "avatar": 'https://www.clipartmax.com/png/middle/434-4349876_profile-icon-vector-png.png', "content": prompt,"contatore": 0})
+        st.session_state.recensioni.append({"role": "user",  "avatar": 'https://www.clipartmax.com/png/middle/434-4349876_profile-icon-vector-png.png', "content": prompt,"contatore": 0})
 
         with container:
             with st.chat_message(name="user", avatar='https://www.clipartmax.com/png/middle/434-4349876_profile-icon-vector-png.png'):
@@ -1932,33 +1930,33 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
         if st.session_state.cont_mappa == 1:
             if 'img1' in globals():
                 if img2 is None:
-                    message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": buffer}
+                    message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": buffer,"contatore": 0}
                     st.session_state.messages.append(message)
-                    message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response}
+                    message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response,"contatore": 0}
                     st.session_state.messages.append(message)
                     st.session_state.recensioni.append(message)
                 else:
-                    message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": buffer1}
+                    message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": buffer1,"contatore": 0}
                     st.session_state.messages.append(message)
-                    message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": buffer2}
+                    message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": buffer2,"contatore": 0}
                     st.session_state.messages.append(message)
-                    message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response}
+                    message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response,"contatore": 0}
                     st.session_state.messages.append(message)
                     st.session_state.recensioni.append(message)
             else: 
-                message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response}
+                message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response,"contatore": 0}
                 st.session_state.messages.append(message)
                 st.session_state.recensioni.append(message)
         else:
-            message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response}
+            message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response,"contatore": 0}
             st.session_state.messages.append(message)
             st.session_state.recensioni.append(message)
     elif st.session_state.checker_ristoranti > 0:
-        message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response}
+        message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response,"contatore": st.session_state.checker_ristoranti}
         st.session_state.messages.append(message)
         st.session_state.recensioni.append(message)
     else:
-        message = {"role": "mail", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response}
+        message = {"role": "mail", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response,"contatore": 0}
         st.session_state.messages.append(message)
         st.session_state.recensioni.append(message)
     st.rerun()
