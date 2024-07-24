@@ -412,19 +412,20 @@ for i,message in enumerate(st.session_state.messages):
                         con.close()
             elif message["role"]=="data":
                 if st.session_state.checker_ristoranti == 2:
-                    exec(f'd_{j}=st.number_input("",min_value = 1, max_value = 50, key={j},label_visibility = "collapsed")')
-                    exec(f"st.session_state.persone_prenotate =d_{j}")
+                    exec(f'p_{j}=st.number_input("",min_value = 1, max_value = 50, key={j},label_visibility = "collapsed")')
+                    exec(f"st.session_state.persone_prenotate =p_{j}")
                     exec(f"Data_{j}=st.button('Conferma',key=f'btn_dislike{j}')")
                     exec(f"Data_buttons.append(Data_{j})")
                     if Data_buttons[-1]==True and st.session_state.checker_persone == 1:  
                         msg=f"Il numero di persone è: {st.session_state.persone_prenotate}"
-                        message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg}
+                        message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli la data e la fascia oraria tra quelle disponibili."}
                         st.session_state.messages.append(message)
-                        msg="Scegli la data e la fascia oraria tra quelle disponibili."
-                        message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg}
-                        st.session_state.messages.append(message)
+                        # msg="Scegli la data e la fascia oraria tra quelle disponibili."
+                        # message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg}
+                        # st.session_state.messages.append(message)
                         st.session_state.checker_persone=0
                         st.session_state.checker_ristoranti -= 1
+                        st.markdown("Prova1")
                 elif st.session_state.checker_ristoranti == 1:
                     con= pyodbc.connect('DRIVER={SQL Server};SERVER=bubidb.database.windows.net;DATABASE=mlacademy-sqldb;UID=MLacademy;PWD=alten-ML-academy2023')
                     cursor= con.cursor()
@@ -452,7 +453,7 @@ for i,message in enumerate(st.session_state.messages):
                         st.session_state.messages.append(message)            
                         st.session_state.checker_data=0
                         st.session_state.checker_ristoranti = 0
-
+                    
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)),"Ambiente.env"))
 azure_openai_endpoint = os.getenv("openai_endpoint")
 azure_openai_key = os.getenv("openai_key")
