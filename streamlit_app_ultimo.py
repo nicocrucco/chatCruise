@@ -1,6 +1,6 @@
 ######################################################
  
-#########      latest update: Francesco  ###############
+#########      latest update: Alessia  ###############
  
 ######################################################
 
@@ -247,11 +247,11 @@ else:
 # ---------------------------------------------------------End Checker Recensioni------------------------------------------------------------------------------------   
 
 # ---------------------------------------------------------Begin Checker Nota------------------------------------------------------------------------------------  
-if 'checker_nota' not in st.session_state:
-    checker_nota = 0
-    st.session_state['checker_nota'] = 0
+if 'checker_try_catch' not in st.session_state:
+    checker_try_catch = 0
+    st.session_state['checker_try_catch'] = 0
 else:
-    checker_nota = st.session_state['checker_nota']
+    checker_try_catch = st.session_state['checker_try_catch']
 # ---------------------------------------------------------End Checker Nota------------------------------------------------------------------------------------ 
 # ---------------------------------------------------------Begin Save prompt------------------------------------------------------------------------------------   
 if 'prompt_mappa' not in st.session_state:
@@ -274,28 +274,36 @@ risp_nota = ""
 
 #-----------------------------------------------------------------Begin Checker Ristoranti-------------------------------------------------------------------------
 if "checker_ristoranti" not in st.session_state:
-    checker_ristoranti = 0
+    checker_ristoranti = []
     st.session_state["checker_ristoranti"] = checker_ristoranti
-    st.session_state["checker_data"]=0
-    st.session_state["checker_persone"] = 0
+    st.session_state["checker_data"]=[]
+    st.session_state["checker_persone"] = []
+    st.session_state['checker_cucina']=[]
 else:
     checker_ristoranti = st.session_state["checker_ristoranti"]
 #-----------------------------------------------------------------End Checker Ristoranti------------------------------------------------------------------------------
+#-------------------------------------------------------------Dizionari cucine---------------------------------------------------------------------------------------
+ristoranti = ["Michelangelo", "Raffaello", "ying-yang", "Haveli", "Bella Italia", "Pizza360", "Wen", "Ritual", "Pegaso", "Greek Taverna", "My kimchi", "Istanbul", "Fusion", "Nippo", "Sushi Club", "Tao", "Gustoo", "Da Mario"]
+dizionario_cucine = {"cinese": ["ying-yang", "Wen"], "giapponese": ["Nippo", "Fusion", "Sushi Club", "Tao"], "italiana": ["Bella Italia", "Pizza360", "Gustoo", "Da Mario", "Michelangelo", "Raffaello"], "turca": ["Istanbul"], "malesiano": ["Pegaso"], "indiano": ["Haveli"], "greco": ["Greek Taverna"], "messicano": ["Ritual"], "coreano": ["My kimchi"]}
+#-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------Begin data_prenotazione------------------------------------------------------------------------------------
 if "data_prenotazione" not in st.session_state:
-    data_prenotazione = "no data"
-    st.session_state.persone_prenotate = 0
+    data_prenotazione = []
+    st.session_state.persone_prenotate = []
     st.session_state["data_prenotazione"] = data_prenotazione
 else:
     data_prenotazione = st.session_state["data_prenotazione"]
 #-----------------------------------------------------------------End data_prenotazione------------------------------------------------------------------------------
 #-----------------------------------------------------------------Begin risposta_ristorante------------------------------------------------------------------------------------
 if "risposta_ristorante" not in st.session_state:
-    risposta_ristorante = ""
+    risposta_ristorante = []
     st.session_state["risposta_ristorante"] = risposta_ristorante
+    st.session_state["risposta_cucina"] = []
 else:
-    risposta_ristorante = st.session_state["risposta_ristorante"]
+    risposta_state = st.session_state["risposta_ristorante"]
+    
 #-----------------------------------------------------------------End risposta_ristorante------------------------------------------------------------------------------
+
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Display chat messages
 Like_buttons = []
@@ -305,6 +313,8 @@ Data_buttons =[]
 # Display chat messages
 container = st.container(height=560)
 j = 0
+contatore_data=0
+
 for i,message in enumerate(st.session_state.messages):
     with container:
         with st.chat_message(name = message["role"], avatar=message["avatar"]):
@@ -409,17 +419,60 @@ for i,message in enumerate(st.session_state.messages):
                             con.commit()
 
                         con.close()
+            elif message["role"]=="data" and message["contatore"] == 3:
+                lista_cucine=[]
+                for i in dizionario_cucine[st.session_state["risposta_cucina"][contatore_data]]:
+                    lista_cucine.append(i)
+                if len(lista_cucine)==1:
+                    pass
+
+                elif len(lista_cucine)==2:
+                    col1,col2, col3, col4, col5= st.columns([2,5,3,5,2])
+ 
+                    with col2:
+                        if st.button(lista_cucine[0],key=f'button_uno_{j}') and st.session_state.checker_cucina[contatore_data]==1:
+                            st.session_state.checker_ristoranti[contatore_data] -= 1 
+                            st.session_state.checker_cucina[contatore_data]=0
+                            st.session_state['risposta_ristorante'][contatore_data]=lista_cucine[0]
+                            msg=f"Il ristorante che hai scelto è: {st.session_state['risposta_ristorante'][contatore_data]}"
+                            message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli la data e la fascia oraria tra quelle disponibili.", "contatore": st.session_state.checker_ristoranti[contatore_data]}
+                        
+ 
+                    with col4:
+                        if st.button(lista_cucine[1],key=f'button_due_{j}') and st.session_state.checker_cucina[contatore_data]==1:
+                            st.session_state.checker_ristoranti[contatore_data] -= 1 
+                            st.session_state.checker_cucina[contatore_data]=0
+                            st.session_state['risposta_ristorante'][contatore_data]=lista_cucine[1]
+                            msg=f"Il ristorante che hai scelto è: {st.session_state['risposta_ristorante'][contatore_data]}"
+                            message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli la data e la fascia oraria tra quelle disponibili.", "contatore": st.session_state.checker_ristoranti[contatore_data]}
+
+                            
+
+                elif len(lista_cucine)==3:
+                      pass
+                elif len(lista_cucine)==4:
+                    pass
+                else:#Mettiamo la tendina
+                    pass
+
+                
+                
+               
+                
+
+
             elif message["role"]=="data" and message["contatore"] == 2:
                 exec(f'p_{j}=st.number_input(" ",min_value = 1, max_value = 50, key={j},label_visibility = "collapsed")')
-                exec(f"st.session_state.persone_prenotate =p_{j}")
+                exec(f"st.session_state.persone_prenotate[{contatore_data}] =p_{j}")
                 exec(f"Data_{j}=st.button('Conferma',key=f'btn_dislike{j}')")
                 exec(f"Data_buttons.append(Data_{j})")
-                if Data_buttons[-1]==True and st.session_state.checker_persone == 1:
-                    st.session_state.checker_ristoranti -= 1  
-                    msg=f"Il numero di persone è: {st.session_state.persone_prenotate}"
-                    message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli la data e la fascia oraria tra quelle disponibili.", "contatore": st.session_state.checker_ristoranti}
+                if Data_buttons[-1]==True and st.session_state.checker_persone[contatore_data]== 1:
+                    st.session_state.checker_ristoranti[contatore_data] -= 1  
+                    msg=f"Il numero di persone è: {st.session_state.persone_prenotate[contatore_data]}"
+                    message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli la data e la fascia oraria tra quelle disponibili.", "contatore": st.session_state.checker_ristoranti[contatore_data]}
+
                     st.session_state.messages.append(message)
-                    st.session_state.checker_persone=0
+                    st.session_state.checker_persone[contatore_data]=0
                     
 
             elif message["role"]=="data" and message["contatore"] == 1:
@@ -428,7 +481,7 @@ for i,message in enumerate(st.session_state.messages):
                 select_date_disponibili = """SELECT Giorno, FasciaOraria
                                         FROM Ristoranti
                                         WHERE NomeRistorante = ? AND CapienzaTotale >= ? AND Giorno >= CONVERT(date, GETDATE());"""
-                cursor.execute(select_date_disponibili,(st.session_state.risposta_ristorante,st.session_state.persone_prenotate))
+                cursor.execute(select_date_disponibili,(st.session_state.risposta_ristorante[contatore_data],st.session_state.persone_prenotate[contatore_data]))
                 lista_date_disponibili = []
                 for row in cursor.fetchall():
                     lista_date_disponibili.append(row)
@@ -440,16 +493,17 @@ for i,message in enumerate(st.session_state.messages):
 
                 date_default= datetime.now().date()
                 exec(f'd_{j}=st.selectbox(" ",{lista_box}, key={j},label_visibility = "collapsed")')
-                exec(f"st.session_state.data_prenotazione =d_{j}")
+                exec(f"st.session_state.data_prenotazione[{contatore_data}] =d_{j}")
                 exec(f"Data_{j}=st.button('Conferma',key=f'btn_dislike{j}')")
                 exec(f"Data_buttons.append(Data_{j})")
-                if Data_buttons[-1]==True and st.session_state.checker_data==1:
-                    st.session_state.checker_ristoranti = 0
-                    msg=f"Prenotazione effettuata: {st.session_state.data_prenotazione}"
-                    sfun.Prenotazione_Ristoranti(1984,st.session_state.risposta_ristorante,st.session_state.data_prenotazione,st.session_state.persone_prenotate)
-                    message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg,"contatore": st.session_state.checker_ristoranti}
+                if Data_buttons[-1]==True and st.session_state.checker_data[contatore_data]==1:
+                    st.session_state.checker_ristoranti[contatore_data] = 0
+                    msg=f"Prenotazione effettuata: {st.session_state.data_prenotazione[contatore_data]}"
+                    sfun.Prenotazione_Ristoranti(1984,st.session_state.risposta_ristorante[contatore_data],st.session_state.data_prenotazione[contatore_data],st.session_state.persone_prenotate[contatore_data])
+                    message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg,"contatore": st.session_state.checker_ristoranti[contatore_data]}
                     st.session_state.messages.append(message)            
-                    st.session_state.checker_data=0
+                    st.session_state.checker_data[contatore_data]=0
+                contatore_data+=1
                     
                     
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)),"Ambiente.env"))
@@ -891,8 +945,7 @@ else:
 
 #-----------------------------------------------------------------------Ristoranti-----------------------------------------------------------------------------------------    
 
-ristoranti = ["Michelangelo", "Raffaello", "ying-yang", "Haveli", "Bella Italia", "Pizza360", "Wen", "Ritual", "Pegaso", "Greek Taverna", "My kimchi", "Istanbul", "Fusion", "Nippo", "Sushi Club", "Tao", "Gustoo", "Da Mario"]
-dizionario_cucine = {"cinese": ["ying-yang", "Wen"], "giapponese": ["Nippo", "Fusion", "Sushi Club", "Tao"], "italiana": ["Bella Italia", "Pizza360", "Gustoo", "Da Mario", "Michelangelo", "Raffaello"], "turca": ["Istanbul"], "malesiano": ["Pegaso"], "indiano": ["Haveli"], "greco": ["Greek Taverna"], "messicano": ["Ritual"], "coreano": ["My kimchi"]}
+
 
 if "chain_interpreta_ristoranti" not in st.session_state:
     llm_partenza = AzureChatOpenAI(
@@ -1127,10 +1180,10 @@ from datetime import datetime
 def generate_response(prompt_input):
     cont = 0
     cont_mappa = 0
-    checker_nota = 0
+    checker_try_catch = 0
     st.session_state['cont'] = cont
     st.session_state['cont_mappa'] = cont_mappa
-    st.session_state['checker_nota'] = checker_nota
+    st.session_state['checker_try_catch'] = checker_try_catch
     global risp_nota 
     risposta = chain.invoke({"question": prompt_input}).content #Stampami un Codice Isin casuale
     lista_risposta=risposta.split('#')
@@ -1272,7 +1325,7 @@ def generate_response(prompt_input):
 
     elif lista_risposta[0].strip() == '4': #Salvataggio in nota
 
-        st.session_state['checker_nota'] = 1
+        st.session_state['checker_try_catch'] = 1
         risposta_nota = chain_nota.invoke({"question": lista_risposta[1]}).content
         # Ottieni la data e l'ora corrente
         now = datetime.now()
@@ -1305,13 +1358,13 @@ def generate_response(prompt_input):
     
     elif lista_risposta[0].strip() == "6": #cancellazione note
 
-        st.session_state['checker_nota'] = 1
+        st.session_state['checker_try_catch'] = 1
         risultato = sfun.delete_note()
         risp_nota = "Il contenuto delle note è stato cancellato con successo."
         #return 'Il contenuto delle note è stato cancellato con successo.'
 
     elif lista_risposta[0].strip()== "7":
-        st.session_state['checker_nota'] = 1
+        st.session_state['checker_try_catch'] = 1
         risultato = sfun.delete_row(lista_risposta[1].strip())
         risp_nota = "La nota è stata cancellata"
         #return 'La nota è stata cancellata'
@@ -1354,6 +1407,7 @@ def generate_response(prompt_input):
         
     #PRENOTAZIONI
     elif lista_risposta[0].strip() == "10" or lista_risposta[0].strip() == "11":
+        st.session_state['checker_try_catch'] = 1
         risposta_ristoranti = lista_risposta[1].split(" ")
         if len(risposta_ristoranti) == 1:
             if risposta_ristoranti[0] == "stringa-segreta":
@@ -1365,12 +1419,25 @@ def generate_response(prompt_input):
             risposta1 = chain_interpreta_ristoranti.invoke({"question": risposta_ristoranti[1], "ristoranti": dizionario_cucine.keys()}).content
             risposta2 = chain_interpreta_ristoranti.invoke({"question": risposta_ristoranti[1], "ristoranti": ristoranti}).content
             if risposta1 in dizionario_cucine.keys():
-                return "Scegli ristorante di questa cucina"
+                st.write("Ciao")
+                st.session_state["risposta_cucina"].append(risposta1)
+                st.session_state["risposta_ristorante"].append(1)
+                st.session_state["checker_ristoranti"].append(3)
+                st.session_state["checker_data"].append(1)
+                st.session_state["checker_persone"].append(1)
+                st.session_state.persone_prenotate.append(1)
+                st.session_state.data_prenotazione.append(1)
+                st.session_state.checker_cucina.append(1)
+                return "Scegli il ristorante di questa cucina"
             elif risposta2 in ristoranti:
-                st.session_state["risposta_ristorante"] = risposta2
-                st.session_state["checker_ristoranti"] = 2
-                st.session_state["checker_data"] = 1
-                st.session_state["checker_persone"] = 1
+                st.session_state["risposta_ristorante"].append(risposta2)
+                st.session_state["risposta_cucina"].append(1)
+                st.session_state["checker_ristoranti"].append(2)
+                st.session_state["checker_data"].append(1)
+                st.session_state["checker_persone"].append(1)
+                st.session_state.persone_prenotate.append(1)
+                st.session_state.data_prenotazione.append(1)
+                st.session_state.checker_cucina.append(1)
                 return "Selezione il numero di persone per la prenotazione."
             else:
                 return "Il ristorante non esiste"
@@ -1861,7 +1928,7 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
                     try:
                         img1, img2, response = generate_response(prompt)                              
                     except Exception as e:
-                        if st.session_state.checker_nota == 1:
+                        if st.session_state.checker_try_catch == 1:
                             response = risp_nota
                         else:
                             if st.session_state["prompt_mappa"] == "":
@@ -1926,7 +1993,7 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
 
 
                                 
-    if st.session_state.mail_checker == 0 and st.session_state.checker_ristoranti==0:
+    if st.session_state.mail_checker == 0 and st.session_state.checker_ristoranti[-1]==0:
         if st.session_state.cont_mappa == 1:
             if 'img1' in globals():
                 if img2 is None:
@@ -1951,8 +2018,8 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
             message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response,"contatore": 0}
             st.session_state.messages.append(message)
             st.session_state.recensioni.append(message)
-    elif st.session_state.checker_ristoranti > 0:
-        message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response,"contatore": st.session_state.checker_ristoranti}
+    elif st.session_state.checker_ristoranti[-1] > 0:
+        message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response,"contatore": st.session_state.checker_ristoranti[-1]}
         st.session_state.messages.append(message)
         st.session_state.recensioni.append(message)
     else:
