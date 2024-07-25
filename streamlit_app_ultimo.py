@@ -423,14 +423,8 @@ for i,message in enumerate(st.session_state.messages):
                 lista_cucine=[]
                 for i in dizionario_cucine[st.session_state["risposta_cucina"][contatore_data]]:
                     lista_cucine.append(i)
-                if len(lista_cucine)==1:
-                    st.session_state.checker_ristoranti[contatore_data] -= 1 
-                    st.session_state['risposta_ristorante'][contatore_data]=lista_cucine[0]
-                    msg=f"Il ristorante che hai scelto è: {st.session_state['risposta_ristorante'][contatore_data]}"
-                    message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg + ". Scegli il numero di persone.", "contatore": st.session_state.checker_ristoranti[contatore_data]}
-                    st.session_state.messages.append(message)
 
-                elif len(lista_cucine)==2:
+                if len(lista_cucine)==2:
                     col1,col2, col3, col4, col5= st.columns([2,5,3,5,2])
  
                     with col2:
@@ -1488,29 +1482,41 @@ def generate_response(prompt_input):
             else:
                 risposta = chain_interpreta_ristoranti.invoke({"question": risposta_ristoranti[0], "ristoranti": dizionario_cucine.keys()}).content
                 st.session_state["risposta_cucina"].append(risposta)
-                st.session_state["risposta_ristorante"].append(1)
-                st.session_state["checker_ristoranti"].append(3)
                 st.session_state["checker_data"].append(1)
                 st.session_state["checker_persone"].append(1)
                 st.session_state.persone_prenotate.append(1)
                 st.session_state.data_prenotazione.append(1)
                 st.session_state.checker_cucina.append(1)
-                risp_nota ="Scegli il ristorante di questa cucina"
-                return "Scegli il ristorante di questa cucina"
+                if len(dizionario_cucine[risposta]) > 1:
+                    risp_nota ="Scegli il ristorante di questa cucina"
+                    st.session_state["checker_ristoranti"].append(3)
+                    st.session_state["risposta_ristorante"].append(1)
+                    return "Scegli il ristorante di questa cucina"
+                else:
+                    risp_nota = f"L'unico ristorante di questa cucina è {dizionario_cucine[risposta][0]}"
+                    st.session_state["risposta_ristorante"].append(dizionario_cucine[risposta][0])
+                    st.session_state["checker_ristoranti"].append(2)
+                    return  f"L'unico ristorante di questa cucina è {dizionario_cucine[risposta][0]}"
         else:
             risposta1 = chain_interpreta_ristoranti.invoke({"question": risposta_ristoranti[1], "ristoranti": dizionario_cucine.keys()}).content
             risposta2 = chain_interpreta_ristoranti.invoke({"question": risposta_ristoranti[1], "ristoranti": ristoranti}).content
             if risposta1 in dizionario_cucine.keys():
                 st.session_state["risposta_cucina"].append(risposta1)
-                st.session_state["risposta_ristorante"].append(1)
-                st.session_state["checker_ristoranti"].append(3)
                 st.session_state["checker_data"].append(1)
                 st.session_state["checker_persone"].append(1)
                 st.session_state.persone_prenotate.append(1)
                 st.session_state.data_prenotazione.append(1)
                 st.session_state.checker_cucina.append(1)
-                risp_nota ="Scegli il ristorante di questa cucina"
-                return "Scegli il ristorante di questa cucina"
+                if len(dizionario_cucine[risposta1]) > 1:
+                    risp_nota ="Scegli il ristorante di questa cucina"
+                    st.session_state["checker_ristoranti"].append(3)
+                    st.session_state["risposta_ristorante"].append(1)
+                    return "Scegli il ristorante di questa cucina"
+                else:
+                    risp_nota = f"L'unico ristorante di questa cucina è {dizionario_cucine[risposta1][0]}"
+                    st.session_state["checker_ristoranti"].append(2)
+                    st.session_state["risposta_ristorante"].append(dizionario_cucine[risposta1][0])
+                    return  f"L'unico ristorante di questa cucina è {dizionario_cucine[risposta1][0]}"
             elif risposta2 in ristoranti:
                 st.session_state["risposta_ristorante"].append(risposta2)
                 st.session_state["risposta_cucina"].append(1)
