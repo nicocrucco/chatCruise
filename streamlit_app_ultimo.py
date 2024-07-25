@@ -304,6 +304,11 @@ else:
     risposta_state = st.session_state["risposta_ristorante"]
     
 #-----------------------------------------------------------------End risposta_ristorante------------------------------------------------------------------------------
+#-----------------------------------------------------------------Begin Mostra prenotazioni------------------------------------------------------------------------------------
+if "checker_mostra_prenotazioni" not in st.session_state:
+    st.session_state["df_prenotazioni"] = []
+    st.session_state["checker_mostra_prenotazioni"] = []
+
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Display chat messages
@@ -315,6 +320,7 @@ Data_buttons =[]
 container = st.container(height=560)
 j = 0
 contatore_data=0
+contatore_mostra=0
 
 for i,message in enumerate(st.session_state.messages):
     with container:
@@ -420,6 +426,9 @@ for i,message in enumerate(st.session_state.messages):
                             con.commit()
 
                         con.close()
+            elif message["role"]=="mostra_prenotazioni":
+                st.table(st.session_state.df_prenotazioni[contatore_mostra])
+                contatore_mostra+=1
             elif message["role"]=="data" and message["contatore"] == 4:
                  
                 exec(f'd_{j}=st.selectbox(" ",{list(dizionario_cucine.keys())}, key={j},label_visibility = "collapsed")')
@@ -615,46 +624,22 @@ if 'chain_risposta1' not in st.session_state:
         openai_api_key = azure_openai_key,
         temperature=0)
 
-    # Dettagli della connessione
-    user = "MLacademy"
-    pw = "alten-ML-academy2023"
-    host = "bubidb.database.windows.net"
-    db = "mlacademy-sqldb"
-
-    # Crea il motore SQLAlchemy per SQL Server utilizzando pymssql
-    if "engine" not in st.session_state:
-        st.session_state.engine = create_engine(f"mssql+pymssql://{user}:{pw}@{host}:1433/{db}")
-
-    warnings.filterwarnings("ignore")
-
-    table_name = 'ALTEN_CONTO'
-    db = SQLDatabase(engine=st.session_state.engine, include_tables=[table_name]) 
-    write_query = create_sql_query_chain(llm_risposta1, db) #..andando a creare SQL Query Chain con llm e db 
-    execute_query = QuerySQLDataBaseTool(db=db) #creiamo un'istanza con il db per eseguire effettivamente la query
-    #nel passaggio precedente abbiamo visto che la nostra catena era in grado di dare una query valida che potesse effettivamente essere utilizzata sul nostro db.
-    #In questo step implementiamo un altro elemento in quella catena che ci permetterà di eseguire quella query automaticamente:
     answer_prompt_risposta1 = PromptTemplate.from_template(
-            """Riporta solo il risultato della query. Nella colonna DARE_AVERE della tabella ALTEN_CONTO la lettera C rappresenta un accredito, un guadagno, un'entrata. La lettera D rappresenta un debito, 
-            un'uscita, una spesa. Gli importi di credito sono numeri positivi, mentre quelli di debito sono negativi. Non parlare di query e non riportare i nomi delle tabelle nelle risposte.
-            Mostra solo i dati eventualmente una lista di dati. Se non ti viene indicata una data, utilizza la data in Data_Pr_Ufficiale più recente. 
-            
-            Question: {question}
-            SQL Query: {query}
-            SQL Result: {result}
-            Answer:
+    """
+    Data una frase in input {question} interpreta la frase in modo tale da identificare le seguenti possibilità:
 
-            """
-        )
-    answer_risposta1 = answer_prompt_risposta1 | llm_risposta1 | StrOutputParser()  
-    chain_risposta1 = (
-        RunnablePassthrough.assign(query=write_query).assign(
-            result=itemgetter("query") | execute_query
-        )
-        | answer_risposta1 
-    )#creiamo di nuovo la catena che descriverà il modo in cui verrà elaborata la Query e la risposta
+    -Restituisci 1 se nella frase è presente la parola oggi
+    -Restituisci 2 se nella domanda è presente la parola domani
+    -Restituisci 3 in tutti gli altri casi.
 
+    Restituisci solo il numero nella risposta.
+
+    Question: {question}
+    Risposta:
+    """
+)
+    chain_risposta1 = answer_prompt_risposta1 | llm_risposta1 
     st.session_state["chain_risposta1"] = chain_risposta1
-    st.session_state.engine.dispose()
 
 else:
     chain_risposta1 = st.session_state["chain_risposta1"]
@@ -1139,36 +1124,17 @@ if "chain" not in st.session_state:
     answer_prompt = PromptTemplate.from_template(
     """Data la seguente richiesta dell'utente:
 
-    - Restituisci 1 se la domanda dell'utente richiede l'esecuzione di una query o un'operazione sui dati oppure se ti viene chiesto un dato sul proprio conto bancario. All'interno del content, 
-    oltre al numero 1, scrivi la richiesta dell'utente. La struttura del content deve essere: 1#richiesta dell'utente. 
-    La richiesta dell'utente può includere, ma non è limitata a, operazioni come query, somma, minimo, massimo, media, ricerca di 
-    informazioni specifiche in riferimento a una data, confronto di valori, estrazione di dati casuali, o qualsiasi altra operazione 
-    inerente all'estrazione di dati da un database.
- 
-    Le tabelle a cui fare riferimento includono:
-    2. `ALTEN_CONTO` (può eseguire operazioni di SELECT, INSERT, UPDATE)
-    
-    Esempi di richieste:
-    - "Mostra tutti i movimenti per il conto 123456789012345678901234567"
-    - "Calcola la somma degli importi dei movimenti in EUR per la società ABC"
-    - "Mostra il saldo per la società ABC alla data 2023-06-01"
-    - "Inserisci un nuovo movimento nel conto 123456789012345678901234567 con importo 100 EUR e causale 'Pagamento Fattura'"
-    - "Aggiorna il saldo del conto 123456789012345678901234567 alla data 2023-06-01 a 5000 EUR"
-    - "Dammi il saldo attuale"
-
-
-    L'intelligenza artificiale deve essere in grado di comprendere richieste simili che non usano i nomi delle colonne esatti, 
-    ma che fanno riferimento ai concetti rappresentati da tali colonne.
-
-
-    Per qualsiasi richiesta dell'utente relativa alle tabelle ALTEN_CONTO , anche se i nomi delle colonne non 
-    sono specificati esattamente, rispondi comunque con "1" seguito dalla richiesta dell'utente.
+    - Restituisci 1 se la domanda dell'utente include richieste sul mostrare/vedere/elencare delle prenotazioni effettuate.
+     Rispondi con "1#rischiesta dell'utente" 
 
     - Restituisci 2 quando l'utente vuole informazioni di carattere testuale, che comprendi debbano essere prese da qualche parte.
       All'interno del content, oltre al numero 2, scrivi la domanda posta dall'utente senza tue modifiche. Quindi, ad esempio, la struttura del content deve 
       essere: 2#domanda dell'utente senza tue modifiche. NB: a questa categoria appartengono anche quel tipo di richieste volte che capisci
       siano una riformulazione, precisazione o approfondimento di una risposta precedente; Le richieste possono riguardare informazioni di carattere economico, 
       cambi tra valute, riassunti di informazioni generali relativamente a oggi e ieri;
+
+    -Restituisci 3 se la domanda dell'utente include richieste come eliminare/cancellare/disdire/annullare una prenotazione.
+     Rispondi con "3#rischiesta dell'utente" 
 
     - Restituiscimi 4 se l'utente richiede di annotare qualcosa. All'interno del content, oltre al numero 4, scrivi la richiesta dell'utente. 
       La struttura del content deve essere: 4#richiesta completa dell'utente. Ad esempio, un tipo di richiesta può essere la
@@ -1282,12 +1248,13 @@ def generate_response(prompt_input):
     lista_risposta=risposta.split('#')
 
 
-    if lista_risposta[0].strip() == '1': #Text to SQL (Estrazione di informazioni da un dataset)
-        st.session_state.engine.connect()
-        risultato = chain_risposta1.invoke({"question": lista_risposta[1]})
-        st.session_state["risultato"] = risultato
-        st.session_state.engine.dispose()
-        return risultato
+    if lista_risposta[0].strip() == '1': 
+        risultato = chain_risposta1.invoke({"question": lista_risposta[1]}).content
+        st.session_state.df_prenotazioni.append(sfun.mostra_prenotazioni(int(risultato),1984))
+        #st.table(df_prenotazioni)
+        st.session_state["checker_mostra_prenotazioni"].append(1)
+        risp_nota="Queste sono le tue prenotazioni:"
+        return "Queste sono le tue prenotazioni:"
 
     elif lista_risposta[0].strip() == '2': #RAG: Prende informazione da pdf
         question = lista_risposta[1]
@@ -1413,7 +1380,10 @@ def generate_response(prompt_input):
             risultato = result['answer']
             st.session_state["risultato"] = risultato
 
-            return risultato       
+            return risultato    
+    elif lista_risposta[0].strip() == '3':  
+        return "Scelta tre"
+             
 
     elif lista_risposta[0].strip() == '4': #Salvataggio in nota
 
@@ -2125,8 +2095,15 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
         if  st.session_state.checker_ristoranti[-1]==0:
             tmp=0
         else:
-            tmp=1                   
-    if st.session_state.mail_checker == 0  and tmp==0:
+            tmp=1  
+    if len(st.session_state.checker_mostra_prenotazioni)==0:
+        tmp1=0
+    else:
+        if  st.session_state.checker_mostra_prenotazioni[-1]==0:
+            tmp1=0
+        else:
+            tmp1=1                   
+    if st.session_state.mail_checker == 0  and tmp==0 and tmp1==0:
         if st.session_state.cont_mappa == 1:
             if 'img1' in globals():
                 if img2 is None:
@@ -2151,10 +2128,15 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
             message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response,"contatore": 0}
             st.session_state.messages.append(message)
             st.session_state.recensioni.append(message)
-    elif st.session_state.checker_ristoranti[-1] > 0:
+    elif tmp>0:
         message = {"role": "data", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response,"contatore": st.session_state.checker_ristoranti[-1]}
         st.session_state.messages.append(message)
         st.session_state.recensioni.append(message)
+    elif tmp1>0:
+        message = {"role": "mostra_prenotazioni", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response,"contatore": 0}
+        st.session_state.messages.append(message)
+        st.session_state.recensioni.append(message)
+        st.session_state.checker_mostra_prenotazioni[-1]=0
     else:
         message = {"role": "mail", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response,"contatore": 0}
         st.session_state.messages.append(message)

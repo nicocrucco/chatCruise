@@ -552,3 +552,36 @@ def Prenotazione_Ristoranti(Id_cliente,Luogo,FasciaOraria,Numero_persone):
     cursor.execute(update_query,(Numero_persone,Luogo,Orario,Giorno))
     con.commit()
     con.close()
+
+
+    #----------------------------------------------------------QUERY PER PRENOTAZIONI ----------------------------------------------
+def mostra_prenotazioni(numero,id_cliente):
+    con= pyodbc.connect('DRIVER={SQL Server};SERVER=bubidb.database.windows.net;DATABASE=mlacademy-sqldb;UID=MLacademy;PWD=alten-ML-academy2023')
+    cursor= con.cursor()
+
+    if numero==1: #oggi
+        insert_query = """ SELECT luogo, orario, giorno, numero_persone
+                        FROM Prenotazioni
+                        WHERE id_Cliente=? AND Giorno = CONVERT(date, GETDATE());"""
+    elif numero==2: #domani
+        insert_query="""SELECT luogo, orario, giorno, numero_persone
+                        FROM Prenotazioni
+                        WHERE id_Cliente=? AND Giorno = CONVERT(date, GETDATE()+1);"""
+    
+    else:
+        insert_query="""SELECT luogo, orario, giorno, numero_persone
+                        FROM Prenotazioni
+                        WHERE id_Cliente=? AND Giorno >= CONVERT(date, GETDATE());"""
+    cursor.execute(insert_query,(id_cliente))
+    
+    lista_prenotazioni=[]
+    for row in cursor.fetchall():
+        lista_prenotazioni.append(tuple(row))
+        
+    df_prenotazioni = pd.DataFrame(lista_prenotazioni, columns=['luogo', 'orario', 'giorno', 'numero_persone'])
+
+
+    con.commit()
+    con.close()
+
+    return df_prenotazioni
