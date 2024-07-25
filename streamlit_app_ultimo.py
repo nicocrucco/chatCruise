@@ -1,6 +1,6 @@
 ######################################################
  
-#########      latest update: Alessia  ###############
+#########      latest update: Kevin  ###############
  
 ######################################################
 
@@ -2119,8 +2119,14 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
                         st.markdown(response)
 
 
-                                
-    if st.session_state.mail_checker == 0 and st.session_state.checker_ristoranti[-1]==0:
+    if len(st.session_state.checker_ristoranti)==0:
+        tmp=0
+    else:
+        if  st.session_state.checker_ristoranti[-1]==0:
+            tmp=0
+        else:
+            tmp=1                   
+    if st.session_state.mail_checker == 0  and tmp==0:
         if st.session_state.cont_mappa == 1:
             if 'img1' in globals():
                 if img2 is None:
