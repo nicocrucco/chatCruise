@@ -572,7 +572,8 @@ def mostra_prenotazioni(numero,id_cliente):
     else:
         insert_query="""SELECT luogo, orario, giorno, numero_persone
                         FROM Prenotazioni
-                        WHERE id_Cliente=? AND Giorno >= CONVERT(date, GETDATE());"""
+                        WHERE id_Cliente=? AND Giorno >= CONVERT(date, GETDATE())
+                        ORDER BY Giorno;"""
     cursor.execute(insert_query,(id_cliente))
     
     lista_prenotazioni=[]

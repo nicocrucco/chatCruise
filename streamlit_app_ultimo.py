@@ -1153,12 +1153,6 @@ if "chain" not in st.session_state:
     - Restituisci 1 se la domanda dell'utente include richieste sul mostrare/vedere/elencare delle prenotazioni effettuate.
      Rispondi con "1#rischiesta dell'utente" 
 
-    - Restituisci 2 quando l'utente vuole informazioni di carattere testuale, che comprendi debbano essere prese da qualche parte.
-      All'interno del content, oltre al numero 2, scrivi la domanda posta dall'utente senza tue modifiche. Quindi, ad esempio, la struttura del content deve 
-      essere: 2#domanda dell'utente senza tue modifiche. NB: a questa categoria appartengono anche quel tipo di richieste volte che capisci
-      siano una riformulazione, precisazione o approfondimento di una risposta precedente; Le richieste possono riguardare informazioni di carattere economico, 
-      cambi tra valute, riassunti di informazioni generali relativamente a oggi e ieri;
-
     -Restituisci 3 se la domanda dell'utente include richieste come eliminare/cancellare/disdire/annullare una prenotazione.
      Rispondi con "3#rischiesta dell'utente" 
 
@@ -1210,6 +1204,7 @@ if "chain" not in st.session_state:
      Domanda: sono alla 70121 e devo arrivare al market place
      Risposta: 12#70121#market place
      NB: nella risposta non devi aggiungere altro.
+
     
     Domanda: {question}
     Risposta: """
@@ -1276,7 +1271,7 @@ def generate_response(prompt_input):
 
     if lista_risposta[0].strip() == '1': 
         risultato = chain_risposta1.invoke({"question": lista_risposta[1]}).content
-        st.session_state.df_prenotazioni.append(sfun.mostra_prenotazioni(int(risultato),1984))
+        st.session_state.df_prenotazioni.append(sfun.mostra_prenotazioni(int(risultato[0]),1984))
         #st.table(df_prenotazioni)
         st.session_state["checker_mostra_prenotazioni"].append(1)
         risp_nota="Queste sono le tue prenotazioni:"
@@ -1477,27 +1472,6 @@ def generate_response(prompt_input):
         else:
             st.session_state.mail_checker= 2
             return "Inserisci il testo della segnalazione (se non vuoi mandare la segnalazione scrivi esci)"
-
-
-    
-        
-        # if "stringa-segreta" not in st.session_state.mail_body:
-        #     if "stringa-segreta" not in st.session_state.mail_oggetto:
-        #         st.session_state.sicuro = 's'
-        #         return sfun.riassunto(st.session_state.mail_oggetto,st.session_state.mail_body, st.session_state.mail_indirizzo)
-        #     #oggetto vuoto
-        #     else:
-        #         st.session_state.mail_checker = 1
-        #         return "Inserisci l'oggetto della mail (se non vuoi inserire l'oggetto premi spazio e invio)"
-                
-        # #codice kevin
-        # else:
-        #     if "stringa-segreta" in st.session_state.mail_oggetto:
-                
-        #         return "Inserisci l'oggetto della mail (se non vuoi inserire l'oggetto premi spazio e invio)"
-        #     else:
-        #         return "Non hai inserito il testo della mail."
-    
         
     #PRENOTAZIONI
     elif lista_risposta[0].strip() == "10" or lista_risposta[0].strip() == "11":
@@ -1571,25 +1545,7 @@ def generate_response(prompt_input):
             else:
                 return "Il ristorante non esiste"
             
-    #VENDITA BTP   
-    # elif lista_risposta[0].strip() == "11":
-    #     st.session_state.sell_btp=lista_risposta[1]
-    #     st.session_state.sell_quantità=lista_risposta[2]
-    #     if "stringa-segreta" not in st.session_state.sell_btp:
-    #         if "stringa-segreta" not in st.session_state.sell_quantità:
-    #             st.session_state.sell_sicuro='s'
-    #             return "Sei sicuro di voler effettuare la vendita?"
-    #         else:
-    #             st.session_state.sell_checker=1
-    #             return "Inserisci il numero di lotti che vuoi vendere"
-    #     else:
-    #         if "stringa-segreta" not in st.session_state.sell_quantità:
-    #             st.session_state.sell_checker=1
-    #             return "Inserisci la descrizione del BTP che vuoi vendere"
-    #         else:
-    #             st.session_state.sell_checker=2
-    #             return "Inserisci la descrizione del BTP che vuoi vendere"
-    
+
     #Tool Mappa
     elif lista_risposta[0].strip() == "12":
         st.session_state['prompt_mappa'] = prompt_input
@@ -1859,6 +1815,8 @@ def generate_response(prompt_input):
             risposta = risposta_1 + stringa + risposta_2
             st.session_state["prompt_mappa"] = ''
             return im1, im2, risposta
+    else:
+        return risposta
 
 
 
