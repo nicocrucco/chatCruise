@@ -308,6 +308,10 @@ else:
 if "checker_mostra_prenotazioni" not in st.session_state:
     st.session_state["df_prenotazioni"] = []
     st.session_state["checker_mostra_prenotazioni"] = []
+    st.session_state.df_eliminazione=[]
+    st.session_state["checker_elimina_prenotazioni"]=[]
+    st.session_state.checker_prenotazioni=[]
+    st.session_state.prenotazione_eliminata=[]
 
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -321,7 +325,7 @@ container = st.container(height=560)
 j = 0
 contatore_data=0
 contatore_mostra=0
-
+contatore_eliminazione=0
 for i,message in enumerate(st.session_state.messages):
     with container:
         with st.chat_message(name = message["role"], avatar=message["avatar"]):
@@ -422,10 +426,32 @@ for i,message in enumerate(st.session_state.messages):
                                             VALUES (?,?,?,?)
                                             """
                             data = (str(datetime.now().date()), 0, domanda, risposta)
+
                             cursor.execute(insert_query, data)
                             con.commit()
-
+                            
+                        cursor.close()
                         con.close()
+            elif message["role"]=="elimina_prenotazioni":
+                lista_prenotazioni=[]
+                num_rows = st.session_state.df_eliminazione[contatore_eliminazione].shape[0]
+                nomi_colonne = list(st.session_state.df_eliminazione[contatore_eliminazione].columns)
+                for indice in range(num_rows):
+                    temporaneo=""
+                    for column,indice_c in zip(list(st.session_state.df_eliminazione[contatore_eliminazione].loc[indice]),range(len(nomi_colonne))):
+                        temporaneo= temporaneo+" "+nomi_colonne[indice_c]+": "+str(column)
+                    lista_prenotazioni.append(temporaneo.strip())
+                exec(f'd_{j}=st.selectbox(" ",{lista_prenotazioni}, key={j},label_visibility = "collapsed")')
+                exec(f"st.session_state.prenotazione_eliminata[contatore_data] =d_{j}")
+                exec(f"Data_{j}=st.button('Conferma',key=f'btn_dislike{j}')")
+                exec(f"Data_buttons.append(Data_{j})")
+                if Data_buttons[-1]==True and st.session_state.checker_prenotazioni[contatore_eliminazione]==1:
+                    msg=f"La prenotazione {st.session_state.prenotazione_eliminata[contatore_eliminazione]} è stata cancellata con successo."
+                    message = {"role": "assistant", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content":msg,"contatore": 0}
+                    st.session_state.messages.append(message)            
+                    st.session_state.checker_prenotazioni[contatore_eliminazione]=0
+                    sfun.elimina_prenotazione(st.session_state.prenotazione_eliminata[contatore_eliminazione],1984)
+                contatore_eliminazione+=1
             elif message["role"]=="mostra_prenotazioni":
                 st.table(st.session_state.df_prenotazioni[contatore_mostra])
                 contatore_mostra+=1
@@ -628,11 +654,11 @@ if 'chain_risposta1' not in st.session_state:
     """
     Data una frase in input {question} interpreta la frase in modo tale da identificare le seguenti possibilità:
 
-    -Restituisci 1 se nella frase è presente la parola oggi
-    -Restituisci 2 se nella domanda è presente la parola domani
-    -Restituisci 3 in tutti gli altri casi.
+    -Restituisci solo 1 se nella frase è presente la parola oggi
+    -Restituisci solo 2 se nella domanda è presente la parola domani
+    -Restituisci solo 3 in tutti gli altri casi.
 
-    Restituisci solo il numero nella risposta.
+    NELLA RISPOSTA DEVE ESSERCI SOLO IL NUMERO
 
     Question: {question}
     Risposta:
@@ -1381,8 +1407,14 @@ def generate_response(prompt_input):
             st.session_state["risultato"] = risultato
 
             return risultato    
-    elif lista_risposta[0].strip() == '3':  
-        return "Scelta tre"
+    elif lista_risposta[0].strip() == '3':
+        st.session_state.df_eliminazione.append(sfun.mostra_prenotazioni(3,1984))
+        #st.table(df_prenotazioni)
+        st.session_state["checker_elimina_prenotazioni"].append(1)
+        st.session_state.checker_prenotazioni.append(1)
+        st.session_state.prenotazione_eliminata.append(1)
+        risp_nota="Quale prenotazione vuoi eliminare?"
+        return "Quale prenotazione vuoi eliminare?:"
              
 
     elif lista_risposta[0].strip() == '4': #Salvataggio in nota
@@ -1880,7 +1912,7 @@ with c2:
 
 
 # Generate a new response if last message is not from assistant
-if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.messages[-1]["role"] != "mail" and st.session_state.messages[-1]["role"] != "data" and st.session_state.messages[-1]["role"] != "mostra_prenotazioni":
+if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.messages[-1]["role"] != "mail" and st.session_state.messages[-1]["role"] != "data" and st.session_state.messages[-1]["role"] != "mostra_prenotazioni" and st.session_state.messages[-1]["role"] != "elimina_prenotazioni":
     with container:
         with st.chat_message(name = "assistant", avatar='https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg'):
             with st.spinner("Sto pensando...🤔"):
@@ -2102,8 +2134,15 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
         if  st.session_state.checker_mostra_prenotazioni[-1]==0:
             tmp1=0
         else:
-            tmp1=1                   
-    if st.session_state.mail_checker == 0  and tmp==0 and tmp1==0:
+            tmp1=1     
+    if len(st.session_state.checker_elimina_prenotazioni)==0:
+        tmp2=0
+    else:
+        if  st.session_state.checker_elimina_prenotazioni[-1]==0:
+            tmp2=0
+        else:
+            tmp2=1                
+    if st.session_state.mail_checker == 0  and tmp==0 and tmp1==0 and tmp2==0:
         if st.session_state.cont_mappa == 1:
             if 'img1' in globals():
                 if img2 is None:
@@ -2137,6 +2176,11 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
         st.session_state.messages.append(message)
         st.session_state.recensioni.append(message)
         st.session_state.checker_mostra_prenotazioni[-1]=0
+    elif tmp2>0:
+        message = {"role": "elimina_prenotazioni", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response,"contatore": 0}
+        st.session_state.messages.append(message)
+        st.session_state.recensioni.append(message)
+        st.session_state.checker_elimina_prenotazioni[-1]=0
     else:
         message = {"role": "mail", "avatar": 'https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg' ,"content": response,"contatore": 0}
         st.session_state.messages.append(message)

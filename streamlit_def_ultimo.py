@@ -550,6 +550,7 @@ def Prenotazione_Ristoranti(Id_cliente,Luogo,FasciaOraria,Numero_persone):
                     SET CapienzaTotale = CapienzaTotale - ?
                     WHERE NomeRistorante =? AND FasciaOraria =? AND Giorno = ?;"""
     cursor.execute(update_query,(Numero_persone,Luogo,Orario,Giorno))
+    cursor.close()
     con.commit()
     con.close()
 
@@ -580,8 +581,30 @@ def mostra_prenotazioni(numero,id_cliente):
         
     df_prenotazioni = pd.DataFrame(lista_prenotazioni, columns=['luogo', 'orario', 'giorno', 'numero_persone'])
 
-
+    cursor.close()
     con.commit()
     con.close()
 
     return df_prenotazioni
+
+def elimina_prenotazione(prenotazione_da_eliminare,id_cliente):
+    lista=prenotazione_da_eliminare.split(" ")
+    lista_2=[]
+    for indice in range(len(lista)):
+        if indice%2==1:
+            lista_2.append(lista[indice])
+    luogo=lista_2[0]
+    orario=lista_2[1]
+    giorno=lista_2[2]
+    numero_persone=lista_2[3]
+    con= pyodbc.connect('DRIVER={SQL Server};SERVER=bubidb.database.windows.net;DATABASE=mlacademy-sqldb;UID=MLacademy;PWD=alten-ML-academy2023')
+    cursor= con.cursor()
+    delete_query = """ DELETE FROM Prenotazioni WHERE luogo=? AND orario=? AND giorno=? AND numero_persone=?;"""
+    cursor.execute(delete_query,(luogo,orario,giorno,numero_persone))
+    update_query =  """UPDATE Ristoranti
+                    SET CapienzaTotale = CapienzaTotale + ?
+                    WHERE NomeRistorante =? AND FasciaOraria =? AND Giorno = ?;"""
+    cursor.execute(update_query,(numero_persone,luogo,orario,giorno))
+    cursor.close()
+    con.commit()
+    con.close()
