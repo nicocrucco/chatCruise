@@ -1880,7 +1880,7 @@ with c2:
 
 
 # Generate a new response if last message is not from assistant
-if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.messages[-1]["role"] != "mail" and st.session_state.messages[-1]["role"] != "data":
+if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.messages[-1]["role"] != "mail" and st.session_state.messages[-1]["role"] != "data" and st.session_state.messages[-1]["role"] != "mostra_prenotazioni":
     with container:
         with st.chat_message(name = "assistant", avatar='https://www.shutterstock.com/image-vector/call-center-customer-support-vector-600nw-2285364015.jpg'):
             with st.spinner("Sto pensando...🤔"):
