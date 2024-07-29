@@ -319,7 +319,7 @@ if "checker_mostra_prenotazioni" not in st.session_state:
 Like_buttons = []
 Dislike_buttons =[]
 Data_buttons =[]
-
+script_dir = os.path.dirname(os.path.abspath(__file__))
 # Display chat messages
 container = st.container(height=560)
 j = 0
@@ -710,43 +710,78 @@ llm_risposta3 = AzureChatOpenAI(
     temperature = 0)
 
 # Build prompt
-template = """Utilizza i seguenti elementi di contesto, le domande precedenti e le relative risposte per rispondere esclusivamente alle domande di carattere economico e finanziario. Rispondi solo a queste domande. Se non conosci la risposta, di' semplicemente che non la sai, senza cercare di inventare una risposta (fatta eccezione per i saluti dell'utente). Se non comprendi la domanda perché è mal posta o contiene errori di battitura, chiedi gentilmente all'utente di riscriverla in maniera più comprensibile. Mantieni la risposta concisa e informativa.
+template = """
+            Utilizza i seguenti elementi di contesto, le domande precedenti e le relative risposte per rispondere alle domande relative agli eventi giornalieri 
+            di una crociera. Rispondi solo a queste domande. Se non conosci la risposta, di' semplicemente che non la sai, senza cercare di inventare una 
+            risposta (fatta eccezione per i saluti dell'utente). 
+            Se non comprendi la domanda perché è mal posta o contiene errori di battitura, chiedi gentilmente all'utente di riscriverla in maniera più 
+            comprensibile. Mantieni la risposta concisa e informativa.
 
-Nota bene: se nella domanda sono presenti richieste con riferimento a un periodo temporale con le parole "ieri" oppure "oggi", per rispondere alla domanda utilizza i soli documents per i quali il metadato "Data_di_Pubblicazione" corrisponde al giorno specificato. 
-            - nel caso in cui nella richiesta comparisse "ieri", dovrai interpretarlo come: "data = datetime.today() - timedelta(days=1)"; 
-            - mentre nel caso in cui nella richiesta comparisse "oggi", dovrai interpretarlo come: "data = datetime.today()". 
+            Rispondi esclusivamente alla domanda dell'utente senza aggiungere ulteriori informazioni.
+            Ciò che genererai è una risposta ad una domanda fatta dall'utente. Dovrai quindi riprendere le parole presenti nella domanda dell'utente.
 
-            Dopo aver eseguito una delle due funzioni precedenti, formatta la data nella seguente maniera: "data_formattata = data.strftime("%Y-%m-%d")".
-            A questo punto, crea una corrispondenza tra data_formattata e il metadato "Data_di_Pubblicazione" qualora presente, prendendo per quest'ultimo soltanto la parte relativa alla data. Per rispondere alla Domanda utilizza solo i documents che soddisfano la condizione. Se la condizione non dovesse essere verificata per alcun documents, dovrai rispondere nella seguente maniera: "Non ci sono informazioni.".
-            Ad esempio, per una Domanda come "Quali sono le informazioni di oggi relativamente alla Borsa di Milano?", essendo che è presente la parola "oggi" dovrai utilizzare la funzione "data = datetime.today()" e di seguito eseguire la formattazione con "data_formattata = data.strftime("%Y-%m-%d")".
-            Così, dovrai rispondere prendendo in considerazione tutte le informazioni contenute all'interno dei documents per i quali il valore del metadato "Data_di_Pubblicazione" (senza considerare ore, minuti e secondi) uguale al valore della variabile "data_formatatta". 
-            All'interno dovrai riportare sempre tutte le informazioni contenute nei documenti che soddisfano la condizione sopra definita e solo quando ti è esplicitamente richiesto dall'utente dovrai riportare soltanto le più recenti.
-            Se la condizione non dovesse essere verificata per alcun documents, dovrai rispondere nella seguente maniera: "Non ci sono informazioni.".
+            Esempio 1:
+            Domanda: quali sono gli eventi di questa sera?
+            Risposta: questa sera è prevista la cena al ristorante Red Velvet e successivamente lo spettacolo di benvenuto al teatro L'Avanguardia.
+             
+
+            NOTA BENE: 
+            L'informazione temporale all'interno del contesto può essere rappresentata mediante fasce orarie, ad esempio: 14:00 - 17:00, 21:00 - 23:00, 
+            8:30 - 9:30.
+           
+            Quando ti viene posta una domanda su un orario (ad esempio 15:30) che rientra in una fascia oraria (ad esempio 14:00 - 17:00) presente negli eventi 
+            previsti, hai informazioni necessarie per poter rispondere e dire che quell'orario rientra nella fascia oraria in cui sono previsti determinati eventi. 
+
+            Esempio 2:
+            Domanda: Quale evento ci sarà alle 15:30?
+            Risposta: Alle 15:30 avrai del tempo libero per esplorare Marsiglia, fare shopping o rilassarti in uno dei caffè locali. Questo potrai farlo dalle 14:00
+            alle 17:00.
+
+            Nella risposta puoi dirmi che non ci sono eventi specifici previsti se e solo se l'orario indicato dall'utente non rientra in nessuna fascia oraria.
+
+            NB: se ti venisse posta una domanda per un orario al quale corrispondono più eventi, rispondi riportando ognuno di essi con i rispettivi orari di inizio e fine.
             
-            Inoltre, qualora ti venisse chiesto di dare informazioni generali relativamente ad un giorno (ieri o oggi) senza specificare un preciso argomento, rispondi facendo un riassunto utilizzando tutti i documents, e le informazioni che contengono, che soddisfano la condizione sopra definita.
-            Un tipo di richieste classificabili come questo tipo sono: "Fammi un riassunto delle informazioni di oggi", "Cos'è accaduto ieri?", etc. 
-            Ad esempio, per una Domanda come: "Fammi un riassunto delle informazioni di oggi" o "Cos'è successo oggi?" rispondi con un riassunto con le informazioni risalenti a quel giorno. 
+            Esempio 3:
+            Domanda: Quali sono gli eventi previsti alle ore 9:30?
+            Risposta: Alle ore 9:30 termina la colazione al Buffet Il Cerchio d'Oro. Inoltre, a partire dalle 9:00 sarà possibile partecipare ad una delle escursioni organizzate dalla nostra compagnia a Marsiglia.
 
-            - Una tipologia di domanda che ti può essere posta è quella relativa al cambio tra due valute. Ad esempio: "Qual è il cambio euro dollaro?" oppure "A quanto ammonta oggi il cambio euro yen?" oppure "Qual era ieri il cambio euro dollaro?" oppure "A quanto ammontava ieri il cambio euro yen?".
-              Ovviamente, anche in questo caso, se specificate le parole "ieri" o "oggi", devi ricercare queste informazioni tra i documents che soddisfano la condizione sopra definita per questi casi e qualora non venga trovata alcuna corrispondenza devi rispondere "Non ci sono informazioni".
+            {context}
+            Domanda: {question}
+            Risposta:
+            """
+QA_CHAIN_PROMPT = PromptTemplate(input_variables=["context", "question"],template=template)
 
-            Ricorda che con la parola "ieri" all'interno di una Domanda si intende sempre la giornata precedente alla data in cui ti è posta la Domanda.
-            Se all'interno della Domanda posta dall'utente dovesse essere riportato un mese, associa a tale mese il corrrispettivo numerico.
-            
-            La risposta dovrà essere sempre la più informativa e discorsiva possibile.
-{context}
-Domanda: {question}
-Risposta:"""
-QA_CHAIN_PROMPT = PromptTemplate(input_variables=["context", "question"],template=template,)
-
-script_dir = os.path.dirname(os.path.abspath(__file__))
-persist_directory = os.path.join(script_dir,"Chroma")
 
 if "vectordb" not in st.session_state:
-    vectordb = Chroma(
-    persist_directory=persist_directory,
-    embedding_function=embedding
+    text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=100,  # Size of each chunk in characters
+    chunk_overlap=0,  # Overlap between consecutive chunks
+    length_function=len,  # Function to compute the length of the text
+    separators= ['---'] # Flag to add start index to each chunk
     )
+
+ 
+    path_data = os.path.join(script_dir, "data")
+
+    input_pdf_path = os.path.join(path_data, "programma_giornaliero_msc_giorno2.pdf")
+    output_pdf_path = os.path.join(path_data, "programma_giornaliero_msc_giorno2_modificato.pdf")
+    second_line = sfun.process_pdf(input_pdf_path, output_pdf_path)
+
+    loader = PyPDFLoader(output_pdf_path)
+    pages = loader.load()
+
+
+    chunks = text_splitter.split_documents(pages)
+
+    for chunk in chunks:
+        chunk.metadata['giorno_di_riferimento'] = second_line  
+
+    vectordb = Chroma.from_documents(
+         documents=chunks,
+         embedding=embedding
+     )
+    
+
 
     st.session_state["vectordb"] = vectordb
 else:
@@ -1153,8 +1188,11 @@ if "chain" not in st.session_state:
     - Restituisci 1 se la domanda dell'utente include richieste sul mostrare/vedere/elencare delle prenotazioni effettuate.
      Rispondi con "1#rischiesta dell'utente" 
 
-    -Restituisci 3 se la domanda dell'utente include richieste come eliminare/cancellare/disdire/annullare una prenotazione.
-     Rispondi con "3#rischiesta dell'utente" 
+    - Restituisci 2 se la domanda dell'utente include richieste di informazioni sulle attività quotidiane oppure sugli eventi che si terranno.
+      Rispondi con "2#domanda" senza modificare in alcun modo la domanda dell'utente.
+
+    - Restituisci 3 se la domanda dell'utente include richieste come eliminare/cancellare/disdire/annullare una prenotazione.
+      Rispondi con "3#rischiesta dell'utente" 
 
     - Restituiscimi 4 se l'utente richiede di annotare qualcosa. All'interno del content, oltre al numero 4, scrivi la richiesta dell'utente. 
       La struttura del content deve essere: 4#richiesta completa dell'utente. Ad esempio, un tipo di richiesta può essere la
@@ -1173,7 +1211,6 @@ if "chain" not in st.session_state:
     
     -Restituiscimi "9" se l'utente chiede di inviare una segnalazione oppure se l'utente dice di avere un problema. 
     Esempi di domande che possono essere poste e che ti aiuteranno ad interpretare la domanda da parte dell'utente sono: "Voglio fare una segnalazione", "Ho un problema" e "Voglio fare una segnalazione per un problema"
-    
 
     -Restituiscimi "10" se l'utente chiede di fare una prenotazione o vuole mangiare in un determinato posto, indipendentemente dal tipo di cucina. 
     Analizza la richiesta e individua il luogo della prenotazione oppure l'oggetto della domanda. 
@@ -1269,6 +1306,7 @@ def generate_response(prompt_input):
     lista_risposta=risposta.split('#')
 
 
+
     if lista_risposta[0].strip() == '1': 
         risultato = chain_risposta1.invoke({"question": lista_risposta[1]}).content
         st.session_state.df_prenotazioni.append(sfun.mostra_prenotazioni(int(risultato[0]),1984))
@@ -1277,131 +1315,15 @@ def generate_response(prompt_input):
         risp_nota="Queste sono le tue prenotazioni:"
         return "Queste sono le tue prenotazioni:"
 
+
     elif lista_risposta[0].strip() == '2': #RAG: Prende informazione da pdf
         question = lista_risposta[1]
-        
-        if st.session_state["RAG_checker"] == 0:
-            st.session_state["RAG_checker"] = 1
-            data_segnata_query = sfun.leggi_valore_da_file()
-            data_segnata = datetime.strptime(data_segnata_query, "%Y-%m-%d %H:%M:%S")
+       
+        result = qa_chain({"question": question})
+        risultato = result['answer']
+        return risultato
 
-            # Dettagli della connessione
-            user = "MLacademy"
-            pw = "alten-ML-academy2023"
-            host = "bubidb.database.windows.net"
-            db = "mlacademy-sqldb"
-            port = "1433"
-
-            conn = pymssql.connect(server=host, user=user, password=pw, database=db)
-            cursor = conn.cursor()
-
-            # Scrivi la tua query SQL
-            query = """SELECT TOP 1 Data_di_Pubblicazione
-                        FROM Scraping_BorsaItaliana
-                        ORDER BY Data_di_Pubblicazione DESC"""
-
-            # Esecuzione della query
-            cursor.execute(query)
-
-            # Ottenere i risultati
-        
-            ultima_data_pubblicazione = cursor.fetchone()
-            ultima_data_pubblicazione = ultima_data_pubblicazione[0]
-            if ultima_data_pubblicazione > data_segnata:
-                # Converti l'oggetto datetime in una stringa con il formato desiderato
-                ultima_data_pubblicazione_nuovo_formato = ultima_data_pubblicazione.strftime('%Y-%m-%d %H:%M:%S')
-
-                sfun.salva_valore_in_file(ultima_data_pubblicazione_nuovo_formato)
-
-                sfun.elimina_file_pdf()
-                
-                # Scrivi la tua query SQL
-                query = f"""SELECT *
-                        FROM Scraping_BorsaItaliana
-                        WHERE Data_di_Pubblicazione  > '{data_segnata_query}';"""
-                
-                # Esecuzione della query
-                cursor.execute(query)
-
-                # Ottenere i risultati
-                articoli = cursor.fetchall()
-                cursor.close()
-                conn.close()
-                df = pd.DataFrame(articoli, columns=['Titolo', 'Data_di_Pubblicazione', 'Articolo'])
-                # Converti la colonna 'Data_di_Pubblicazione' da timestamp a datetime
-                df['Data_di_Pubblicazione'] = pd.to_datetime(df['Data_di_Pubblicazione'])
-                
-                filename = "output.pdf"
-                sfun.create_combined_pdf(df, filename)
-
-                loader = PyPDFLoader(r"output.pdf")
-                pages = loader.load()
-
-                # Initialize text splitter with specified parameters
-                text_splitter = RecursiveCharacterTextSplitter(
-                    chunk_size=1000,  # Size of each chunk in characters
-                    chunk_overlap=0,  # Overlap between consecutive chunks
-                    length_function=len,  # Function to compute the length of the text
-                    separators= ['\n\n'] # Flag to add start index to each chunk
-                    )
-
-                # Split documents into smaller chunks using text splitter
-                chunks = text_splitter.split_documents(pages)
-
-                for i, chunk in enumerate(chunks):
-                    chunk.metadata['Titolo'] = df.loc[i, "Titolo"]
-                    date1 = df.loc[0, "Data_di_Pubblicazione"].strftime('%Y-%m-%d %H:%M:%S')  # Adjust format as needed
-                    chunk.metadata['Data_di_Pubblicazione'] = date1
-
-                batch_size = 30
-                # Suddividi i documenti in batch e processa ciascuno
-                for i in range(0, len(chunks), batch_size):
-                    batch = chunks[i:i + batch_size]
-                    try:
-                        vectordb2 = Chroma.from_documents(
-                                    documents=batch,
-                                    embedding=embedding,
-                                    persist_directory=persist_directory
-                                )
-                    except Exception as e:
-                        #print(f"Errore durante la processazione del batch: {e}")
-                        if '429' in str(e):
-                            #print("Superato il limite di richieste, attendere 60 secondi...")
-                            time.sleep(60)  # Attendere 60 secondi prima di riprovare
-                            vectordb2 = Chroma.from_documents(
-                                        documents=batch,
-                                        embedding=embedding,
-                                        persist_directory=persist_directory
-                                    )
-                            
-                st.session_state['vectordb'] = vectordb2
-                st.write(vectordb2._collection.count())
-                
-                retriever=vectordb2.as_retriever()
-                qa_chain2 = ConversationalRetrievalChain.from_llm(
-                    llm_risposta3,
-                    retriever=retriever,
-                    combine_docs_chain_kwargs = {'prompt': QA_CHAIN_PROMPT},
-                    memory = memoria
-                )
-                
-                result = qa_chain2({"question": question}) 
-                risultato = result['answer']
-                st.session_state["risultato"] = risultato
-
-                return risultato
-            else:
-                result = qa_chain({"question": question}) 
-                risultato = result['answer']
-                st.session_state["risultato"] = risultato
-
-                return risultato
-        else:
-            result = qa_chain({"question": question}) 
-            risultato = result['answer']
-            st.session_state["risultato"] = risultato
-
-            return risultato    
+    
     elif lista_risposta[0].strip() == '3':
         st.session_state.df_eliminazione.append(sfun.mostra_prenotazioni(3,1984))
         #st.table(df_prenotazioni)

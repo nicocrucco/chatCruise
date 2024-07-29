@@ -11,7 +11,7 @@ from fpdf import FPDF
 import cv2 
 import numpy as np
 import math
-
+import pymupdf
 
 
 
@@ -609,3 +609,47 @@ def elimina_prenotazione(prenotazione_da_eliminare,id_cliente):
     cursor.close()
     con.commit()
     con.close()
+
+def process_pdf(input_pdf_path, output_pdf_path):
+    # Apertura del PDF
+    doc = pymupdf.open(input_pdf_path)
+    
+    # Variabili per raccogliere il testo e la seconda riga
+    all_text = []
+    second_line = None
+
+    # Itera su tutte le pagine del documento
+    for page_num in range(len(doc)):
+        page = doc[page_num]
+        # Estrazione del testo
+        text = page.get_text("text")
+        # Suddivisione del testo in righe
+        lines = text.split('\n')
+        
+        # Se siamo sulla prima pagina, estrai la seconda riga
+        if page_num == 0:
+            second_line = lines[1]
+            # Rimuovi le prime due righe solo dalla prima pagina
+            lines = lines[2:]
+        
+        # Separazione degli eventi di ora in ora con due nuove righe
+        processed_lines = []
+        for line in lines:
+            if line and line[0].isdigit():
+                processed_lines.append('---')
+            processed_lines.append(line)
+        
+        # Aggiungi le righe elaborate al testo totale
+        all_text.extend(processed_lines)
+    
+    # Unione delle righe elaborate in un unico testo
+    processed_text = '\n'.join(all_text)
+    
+    # Creazione di un nuovo PDF con il testo modificato
+    new_doc = pymupdf.open()
+    new_page = new_doc.new_page()
+    new_page.insert_text((72, 72), processed_text)
+    # Salvataggio del nuovo PDF
+    new_doc.save(output_pdf_path)
+    
+    return second_line
