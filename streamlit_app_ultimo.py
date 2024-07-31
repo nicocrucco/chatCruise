@@ -1183,66 +1183,69 @@ if "chain" not in st.session_state:
     temperature=0)
 
     answer_prompt = PromptTemplate.from_template(
-    """Data la seguente richiesta dell'utente:
+"""Data la seguente richiesta dell'utente:
 
-    - Restituisci 1 se la domanda dell'utente include richieste sul mostrare/vedere/elencare delle prenotazioni effettuate.
-     Rispondi con "1#rischiesta dell'utente" 
-
-    - Restituisci 2 se la domanda dell'utente include richieste di informazioni sulle attività quotidiane oppure sugli eventi che si terranno.
-      Rispondi con "2#domanda" senza modificare in alcun modo la domanda dell'utente.
-
-    - Restituisci 3 se la domanda dell'utente include richieste come eliminare/cancellare/disdire/annullare una prenotazione.
-      Rispondi con "3#rischiesta dell'utente" 
-
-    - Restituiscimi 4 se l'utente richiede di annotare qualcosa. All'interno del content, oltre al numero 4, scrivi la richiesta dell'utente. 
-      La struttura del content deve essere: 4#richiesta completa dell'utente. Ad esempio, un tipo di richiesta può essere la
-      seguente: "Annotami che domani c'ho una riunione". In questo caso, il content sarà il seguente: 4#Annotami che domani c'ho una riunione;
-    
-    - Restituiscimi soltanto 5# se l'utente richiede di leggere il contenuto del file note. Ad esempio, un tipo di richiesta può essere: "Fammi visualizzare le note scritte all'interno del file note";
-
-    - Restituiscimi soltanto 6 se l'utente richiede di cancellare il contenuto del file note. Ad esempio, un tipo di richiesta può essere: "Elimina le note scritte all'interno del file note";
-    
-    - Restituiscimi 7 se l'utente richiede di cancellare una riga specifica dal file note. All'interno della richiesta dell'utente sarà specificato un valore numerico 
-    (ad esempio: prima, uno, 1, seconda, due, 2, etc.). All'interno del content, oltre al numero 7, scrivi questo numero. Quindi, ad esempio, 
-    la struttura del content deve essere: 7#numero specificato dall'utente. Ad esempio, ad un tipo di richiesta: "Elimina la prima nota all'interno
-    del file note" corrisponde un content: "7#1".
-      Se l'utente specifica di cancellare l'ultima nota la struttura del content deve essere: 7#-1; Se l'utente specifica di cancellare la penultima
-     nota la struttura del content deve essere: 7#-2;
-    
-    -Restituiscimi "9" se l'utente chiede di inviare una segnalazione oppure se l'utente dice di avere un problema. 
-    Esempi di domande che possono essere poste e che ti aiuteranno ad interpretare la domanda da parte dell'utente sono: "Voglio fare una segnalazione", "Ho un problema" e "Voglio fare una segnalazione per un problema"
-
-    -Restituiscimi "10" se l'utente chiede di fare una prenotazione o vuole mangiare in un determinato posto, indipendentemente dal tipo di cucina. 
-    Analizza la richiesta e individua il luogo della prenotazione oppure l'oggetto della domanda. 
-    La struttura della risposta deve essere: 10#luogo della prenotazione. Se non viene specificato il luogo, utilizza "stringa-segreta".
-    Esempi: 
-    Domanda: Voglio prenotare al ristorante michelangelo
-    Risposta: 10#ristorante michelangelo
-    Domanda : Voglio fare una prenotazione
-    Risposta: 10#stringa-segreta
-
-    -Restituiscimi "11" se l'utente vuole prenotare o vuole mangiare una particolare tipologia di cucina. 
-    Esempi di tipologie di cucine: italiana, cinese, giapponese, coreana, indiana, messicana, greca, turca, malesiana...
-    Esempi:
-    Domanda: Voglio mangiare cinese
-    Risposta: 11#cinese
-    Domanda: Voglio prenotare ad un ristorante giapponese
-    Risposta: 11#giapponese
-
-    -Restituiscimi "12" se l'utente chiede di dargli delle indicazioni sul percorso migliore per arrivare da un punto di partenza ad un punto di arrivo. 
-     I punti di arrivo e partenza possono essere o numeri di cabine, ascensori o ambienti ad esempio: market place, bar, capriccio lounge, ecc.. 
-     Gli ascensori sono due: ascensore 1 e ascensore 2. L'utente specificherà il punto di partenza e il punto di arrivo. 
+    -Restituiscimi "12" se l'utente chiede di dargli delle indicazioni sul percorso per arrivare da un punto di partenza ad un punto di arrivo o comunque cita verbi di movimento come
+     andare, raggiungere ,arrivare, portare.
+     I punti di arrivo e partenza possono essere o numeri di cabine, ascensori o ambienti ad esempio: market place, bar, capriccio lounge, ecc..
+     Gli ascensori sono due: ascensore 1 e ascensore 2. L'utente specificherà il punto di partenza e il punto di arrivo.
      La struttura della risposta dovrà essere del tipo: 12#punto di partenza#punto di arrivo
-     Ad esempio: 
-     Domanda: dimmi come arrivare alla cabina 1202 partendo dalla cabina 1307 
+     Ad esempio:
+     Domanda: dimmi come arrivare alla cabina 1202 partendo dalla cabina 1307
      Risposta: 12#1307#1202
      Domanda: come arrivo dal cinema al teatro?
      Risposta: 12#cinema#teatro
      Domanda: sono alla 70121 e devo arrivare al market place
      Risposta: 12#70121#market place
      NB: nella risposta non devi aggiungere altro.
+ 
+    - Restituisci 1 se la domanda dell'utente include richieste sul mostrare/vedere/elencare delle prenotazioni effettuate.
+     Rispondi con "1#rischiesta dell'utente"
+ 
+    - Restituisci 2 se la domanda dell'utente include richieste di informazioni sulle attività quotidiane oppure sugli eventi che si terranno.
+      Rispondi con "2#domanda" senza modificare in alcun modo la domanda dell'utente.
+ 
+    - Restituisci 3 se la domanda dell'utente include richieste come eliminare/cancellare/disdire/annullare una prenotazione.
+      Rispondi con "3#rischiesta dell'utente"
+ 
+    - Restituiscimi 4 se l'utente richiede di annotare qualcosa. All'interno del content, oltre al numero 4, scrivi la richiesta dell'utente.
+      La struttura del content deve essere: 4#richiesta completa dell'utente. Ad esempio, un tipo di richiesta può essere la
+      seguente: "Annotami che domani c'ho una riunione". In questo caso, il content sarà il seguente: 4#Annotami che domani c'ho una riunione;
+   
+    - Restituiscimi soltanto 5# se l'utente richiede di leggere il contenuto del file note. Ad esempio, un tipo di richiesta può essere: "Fammi visualizzare le note scritte all'interno del file note";
+ 
+    - Restituiscimi soltanto 6 se l'utente richiede di cancellare il contenuto del file note. Ad esempio, un tipo di richiesta può essere: "Elimina le note scritte all'interno del file note";
+   
+    - Restituiscimi 7 se l'utente richiede di cancellare una riga specifica dal file note. All'interno della richiesta dell'utente sarà specificato un valore numerico
+    (ad esempio: prima, uno, 1, seconda, due, 2, etc.). All'interno del content, oltre al numero 7, scrivi questo numero. Quindi, ad esempio,
+    la struttura del content deve essere: 7#numero specificato dall'utente. Ad esempio, ad un tipo di richiesta: "Elimina la prima nota all'interno
+    del file note" corrisponde un content: "7#1".
+      Se l'utente specifica di cancellare l'ultima nota la struttura del content deve essere: 7#-1; Se l'utente specifica di cancellare la penultima
+     nota la struttura del content deve essere: 7#-2;
+   
+    -Restituiscimi "9" se l'utente chiede di inviare una segnalazione oppure se l'utente dice di avere un problema.
+    Esempi di domande che possono essere poste e che ti aiuteranno ad interpretare la domanda da parte dell'utente sono: "Voglio fare una segnalazione", "Ho un problema" e "Voglio fare una segnalazione per un problema"
+ 
 
-    
+   
+    -Restituiscimi "10" SOLO SE l'utente chiede di fare una PRENOTAZIONE o vuole MANGIARE in un determinato posto, indipendentemente dal tipo di cucina.
+    Analizza la richiesta e individua il luogo della prenotazione oppure l'oggetto della domanda.
+    La struttura della risposta deve essere: 10#luogo della prenotazione. Se non viene specificato il luogo, utilizza "stringa-segreta".
+    Esempi:
+    Domanda: Voglio prenotare al ristorante michelangelo
+    Risposta: 10#ristorante michelangelo
+    Domanda : Voglio fare una prenotazione
+    Risposta: 10#stringa-segreta
+ 
+    -Restituiscimi "11" solo se l'utente vuole PRENOTARE o vuole MANGIARE una particolare tipologia di cucina.
+    Esempi di tipologie di cucine: italiana, cinese, giapponese, coreana, indiana, messicana, greca, turca, malesiana...
+    Esempi:
+    Domanda: Voglio mangiare cinese
+    Risposta: 11#cinese
+    Domanda: Voglio prenotare ad un ristorante giapponese
+    Risposta: 11#giapponese
+ 
+   
     Domanda: {question}
     Risposta: """
     )
@@ -1309,8 +1312,8 @@ def generate_response(prompt_input):
 
     if lista_risposta[0].strip() == '1': 
         risultato = chain_risposta1.invoke({"question": lista_risposta[1]}).content
+        st.session_state["checker_try_catch"] = 1
         st.session_state.df_prenotazioni.append(sfun.mostra_prenotazioni(int(risultato[0]),1984))
-        #st.table(df_prenotazioni)
         st.session_state["checker_mostra_prenotazioni"].append(1)
         risp_nota="Queste sono le tue prenotazioni:"
         return "Queste sono le tue prenotazioni:"
@@ -1326,7 +1329,7 @@ def generate_response(prompt_input):
     
     elif lista_risposta[0].strip() == '3':
         st.session_state.df_eliminazione.append(sfun.mostra_prenotazioni(3,1984))
-        #st.table(df_prenotazioni)
+        st.session_state["checker_try_catch"] = 1
         st.session_state["checker_elimina_prenotazioni"].append(1)
         st.session_state.checker_prenotazioni.append(1)
         st.session_state.prenotazione_eliminata.append(1)
@@ -1470,6 +1473,7 @@ def generate_response(prompt_input):
 
     #Tool Mappa
     elif lista_risposta[0].strip() == "12":
+
         st.session_state['prompt_mappa'] = prompt_input
         cont_mappa_display = 1
         st.session_state["cont_mappa_display"] = cont_mappa_display
@@ -1716,8 +1720,9 @@ def generate_response(prompt_input):
             a2 = list(dizionario_finale2.keys())[-1]
         if cont_piano  == 0:
             risposta = chain_jpg.invoke({'dizionario_template':dizionario1_template,'partenza':p,'arrivo':a}).content
-            if 'ascensore' in partenza:
+            if 'ascensore' in str(partenza):
                 risposta = str_partenza_ascensore + risposta
+            risposta = risposta + " Per orientarti meglio puoi utilizzare la mappa sopra riportata: il puntino rosso indica la partenza mentre il puntino verde l'arrivo."
             st.session_state["prompt_mappa"] = ''
             return im, None, risposta
         elif cont_piano == 1:
@@ -1734,7 +1739,7 @@ def generate_response(prompt_input):
                     stringa = " Arrivato alla zona ascensore, scendi di un piano. "
                 else:
                     stringa = " Arrivato alla zona ascensore, scendi di {} piani. ".format(piano_partenza-piano_arrivo)
-            risposta = risposta_1 + stringa + risposta_2
+            risposta = risposta_1 + stringa + risposta_2 + " Per orientarti meglio puoi utilizzare la mappa sopra riportata: il puntino rosso indica la partenza mentre il puntino verde l'arrivo."
             st.session_state["prompt_mappa"] = ''
             return im1, im2, risposta
     else:
@@ -1947,27 +1952,6 @@ if st.session_state.messages[-1]["role"] != "assistant" and st.session_state.mes
                                 st.markdown(response)
                                 if response == "A quale ristorante vuoi andare? Ristorante Michelangelo o Ristorante Raffaello." or response == "A quale bar vuoi andare? Bar Bellavista o Bar Costa.":
                                     st.session_state["specificazione_bar_o_ristorante"] = "sì"
-                                # Chiedi all'utente di inserire un prompt
-                                # while True:                              
-                                #     user_input = st.text_input('Per favore inserisci il tuo prompt:')
-                                #     if user_input:
-                                #         prompt = sfun.replace_occurrence(st.session_state["prompt_mappa"], arrivo, user_input.lower())
-                                #         img1, img2, response = generate_response(prompt)
-                                #         break
-                                #     else:
-                                #         pass
-                                
-                                # while user_input is None:
-                                #     with suppress(Exception):
-                                #         user_input = st.text_input('Per favore inserisci il tuo prompt:', value = "")
-                                #         user_input = None if user_input == "" else user_input
-
-                                #         if user_input is not None:
-                                #             prompt = sfun.replace_occurrence(st.session_state["prompt_mappa"], arrivo, user_input.lower())
-                                #             img1, img2, response = generate_response(prompt)
-                                #             break
-                                #         else:
-                                #             pass
 
                     if st.session_state['cont_mappa'] == 1:
                         if 'img1' in globals():
