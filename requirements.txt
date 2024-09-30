@@ -19,3 +19,4 @@ SQLAlchemy==2.0.30
 streamlit==1.35.0
 setuptools
 opencv-python-headless
+pymupdf
