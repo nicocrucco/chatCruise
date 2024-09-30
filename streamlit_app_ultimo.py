@@ -634,12 +634,13 @@ for i,message in enumerate(st.session_state.messages):
                 contatore_data+=1
                     
                     
-load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)),"Ambiente.env"))
-azure_openai_endpoint = os.getenv("openai_endpoint")
-azure_openai_key = os.getenv("openai_key")
+#load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)),"Ambiente.env"))
+#azure_openai_endpoint = os.getenv("openai_endpoint")
+#azure_openai_key = os.getenv("openai_key")
 
 #len(memoria.chat_memory.messages)
-
+azure_openai_endpoint=""
+azure_openai_key=""
 if 'chain_risposta1' not in st.session_state:
     llm_risposta1 = AzureChatOpenAI(
         deployment_name ="init-test-gpt-35-turbo",
