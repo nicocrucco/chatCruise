@@ -7,7 +7,6 @@ langchain_openai==0.1.17
 llama_index==0.10.55
 matplotlib==3.8.4
 numpy==1.23.5
-opencv_python==4.10.0.84
 pandas==2.2.2
 pathfinding==1.0.10
 Pillow==10.4.0
