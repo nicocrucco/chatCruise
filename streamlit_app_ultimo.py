@@ -69,8 +69,8 @@ st.markdown("""
 # Custom HTML/CSS for the banner
 custom_html = """
 <div class="banner">
-<img src="https://leyton.com/it/wp-content/uploads/sites/11/2023/10/Alten-logo.png" alt="Banner Image">
-<span class="banner-text" style="font-family: sans-serif;"><b>chatCruise</b></span>
+
+<span class="banner-text" style="font-family: sans-serif; "><b>ChatBot</b></span>
 </div>
 <style>
     .banner {
