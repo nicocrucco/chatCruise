@@ -46,7 +46,6 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from PIL import Image
 import io
-from dotenv import load_dotenv
 import itertools
 from contextlib import suppress
 
