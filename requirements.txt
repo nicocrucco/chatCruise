@@ -1,4 +1,4 @@
-python_version==3.11
+python_version=="3.11"
 beautifulsoup4==4.12.3
 fpdf==1.7.2
 langchain==0.2.9
