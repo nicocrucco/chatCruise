@@ -86,7 +86,7 @@ custom_html = """
         object-fit: cover;
     }
     .banner-text{
-        margin-left: 170px;
+       color: white;
         font-size: 2em;
 }
 </style>
