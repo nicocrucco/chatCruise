@@ -61,7 +61,7 @@ st.markdown("""
     padding-top: 0rem;
     padding-bottom: -15rem;
     margin-top: -1.6rem;
-    background-color: coral;
+    background-color: hsl(222.2 84% 4.9%);
 }
  
 </style>
