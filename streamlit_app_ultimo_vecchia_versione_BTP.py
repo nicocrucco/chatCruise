@@ -408,9 +408,8 @@ for i,message in enumerate(st.session_state.messages):
 
                         con.close()
 
-azure_openai_endpoint = 'https://alten-test-openai.openai.azure.com/'
-azure_openai_key = 'b9920b722aad4a438cf1a2c7c7fb3a50'
-
+azure_openai_endpoint = ""
+azure_openai_key = ""
 #len(memoria.chat_memory.messages)
 
 if 'chain_risposta1' not in st.session_state:
